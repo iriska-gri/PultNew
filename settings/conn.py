@@ -31,37 +31,14 @@ class Orm():
             print(f"--------------------ОШИБКА---------------- '{e}' ")
         return connection
         
-# ------------------------------------------------------------------------------------------
-    def commit_to(self):
-        """Подтверждение отправки данных"""
-        try:
-            self.connection.commit()
-        except Exception:
-            self.connection.rollback()
-# ------------------------------------------------------------------------------------------
-    def exec_query(self, query, msg = ''):
-        """Курсор для записи данных"""
-        cursor = self.connection.cursor()
-        try:
-            cursor.execute(query)
-        except Error as e:
-            print(f"The error '{e}' occurred")
-# ------------------------------------------------------------------------------------------
-    def exec_query_rows(self, query):
-        """Курсор для чтения данных"""
-        cursor = self.connection.cursor()
-        try:
-            cursor.execute(query)
-            rows = cursor.fetchall()
-            return rows
-        except Error as e:
-            print(f"The error '{e}' occurred")
-# ------------------------------------------------------------------------------------------
+    def mySQL(self, zapros):
+        sql = pd.read_sql(zapros, con = self.connection)
+        return sql
+    
+    def SelectWhere(self, rows, table, uslovie, data):
+        OKVEDmindata = f"""SELECT DISTINCT {rows} FROM {table} WHERE {uslovie} > '{data}'"""
+        return OKVEDmindata
 
-
-    def selectOneTable1(self):
-        # """Выбирает задания из таблицы по пользователю"""
-        # query = f"""SELECT DISTINCT * FROM viruzka_np;"""
-        # return self.exec_query_rows(query)
-        df = pandas.read_sql("SELECT * FROM persons", con = engine)
-        return df
+    def Selected(self, rows, table):
+        OKVEDmindata = f"""SELECT DISTINCT {rows} FROM {table}"""
+        return OKVEDmindata
