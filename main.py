@@ -1,28 +1,49 @@
 import sys  # sys нужен для передачи argv в QApplication
 from PyQt5 import QtWidgets
-import design  # Это наш конвертированный файл дизайна
+import desinger.design  # Это наш конвертированный файл дизайна
 import datetime
-from openMSP import OKVEDload
+from OKVED import OKVEDload
+from desinger.completed import Ui_finished as finished
+from pathlib import Path
 
 okvedl = OKVEDload()
 
 
 
-class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
-    def __init__(self):
-        # Это здесь нужно для доступа к переменным, методам и т.д. в файле design.py
-        super().__init__()
+class ExampleApp(QtWidgets.QMainWindow, desinger.design.Ui_MainWindow, OKVEDload):
+    def __init__(self, **kwargs):
+        super(ExampleApp, self).__init__(**kwargs)
+        OKVEDload.__init__(self, **kwargs)
         self.setupUi(self)  # Это нужно для инициализации нашего дизайна
         self.OKVED.clicked.connect(self.browse_folder)
+        self.load106.clicked.connect(self.showDialog)
+        
+        
 
-    def browse_folder(self):
-        okvedl.uploadinfo()
+    def browse_folder(self): # Событие загрузки файлов ОКВЭД
+        okvedl.loadInSite()
+        self.textBrowser.setText('Вывести возможные ошибки') 
+        self.on_finished()
+
+    def showDialog(self): # Открыть окно выбора файла
+        pathhome = Path.home()
+        name = QtWidgets.QFileDialog.getOpenFileName(None, 'Выбор файла', str(pathhome.joinpath('Desktop')),) 
+        # a = windoww.setText(str(name[0]))
+        print(str(name[0]))
+
+
+    def on_finished(self): # Завершение дествия
+        dialog = QtWidgets.QDialog()
+        dialog.ui = finished()
+        dialog.ui.setupUi(dialog)
+        dialog.ui.pushButton.clicked.connect(dialog.close)
+        dialog.exec_() 
 
 def main():
-    app = QtWidgets.QApplication(sys.argv)  # Новый экземпляр QApplication
-    window = ExampleApp()  # Создаём объект класса ExampleApp
-    window.show()  # Показываем окно
-    app.exec_()  # и запускаем приложение
+    app = QtWidgets.QApplication(sys.argv)
+    window = ExampleApp()
+    window.show() 
+    app.exec_() 
 
-if __name__ == '__main__':  # Если мы запускаем файл напрямую, а не импортируем
-    main()  # то запускаем функцию main()
+if __name__ == '__main__':
+    main()

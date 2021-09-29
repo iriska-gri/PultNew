@@ -14,15 +14,18 @@ import time
 
 orm = Orm()
 
-class OKVEDload():
+class OKVEDload(Orm):
 
-    def __init__(self):
-        pass
+    def __init__(self, **kwargs):
+        super(OKVEDload, self).__init__(**kwargs)
+        self.table = 'viruzka_msp'
+        self.myBD = "okved"
+        
 
     def inTime(self):
         ddate = date.today() - pd.to_timedelta('30 day')
 
-        dfmindata = orm.mySQL(orm.SelectWhere('min(datelikedale)', 'viruzka_msp_1', 'datelikedale', ddate))
+        dfmindata = orm.mySQL(orm.SelectWhere('min(datelikedale)', self.table, 'datelikedale', ddate), self.myBD)
         
         se = dfmindata.values.tolist()
         sdate = se[0][0]
@@ -34,7 +37,7 @@ class OKVEDload():
             day = sdate + timedelta(days=i)
             datelist.append(day)
         
-        df = orm.mySQL(orm.Selected('datelikedale', 'viruzka_msp_1'))
+        df = orm.mySQL(orm.Selected('datelikedale', self.table), self.myBD)
         dateinbase = []
         for x in range(len(df.to_numpy().tolist())):
             dateinbase.append(df.to_numpy().tolist()[x][0])
@@ -49,32 +52,37 @@ class OKVEDload():
 
 # -- --------------------------------------------------------------------------------------------------- Скачивание файла с сайта с декодированием
     def loadInSite(self):
-        for i in self.inTime():
-            self.itogdate = i
-            try:
-                f = requests.get('https://cluster-analysis.nalog.ru/webproxy/api/OkvedReport/new/okved/download/base64?dateTime=' + i + 'T07:56:55.723Z&apikey=d808c003f1d69c5fa97713b2a5e1b591')
-                encoded = json.loads(f.text)
-                data = base64.b64decode(encoded['content'])
-                self.toread = BytesIO()
-                self.toread.write(data)  # pass your 'decrypted' string as the argument here
-                self.toread.seek(0)  # reset the pointer
-                timer_work = time.monotonic()
-                # -------------------------------------------------------------------------------------- Проверка на 0 значения
-                kontroldf = pd.read_excel(self.toread, sheet_name='Выручка', skiprows=5, nrows=2714, usecols = 'B:FQ')
-                kontroldf = kontroldf.fillna(0)
-                kontroldf = kontroldf.replace('-', 0)
-                if kontroldf.sum(axis = 0, skipna = True).sum() == 0:
-                    print("ОКВЕД с датой {} имеет нулевые значения".format(i))
-                else:
-                    try:
-                        self.obrabotkaFile('B:CI', 'viruzka_np')
-                        self.obrabotkaFile('CJ:FQ', 'viruzka_msp')
-                    except Exception:
-                        print("Провал загрузки: {}".format(i))
-                        continue
-            except Exception:
-                print("Провал скачвания даты: {}".format(i))
-                continue
+        if self.inTime() == []: # Если все даты в базе
+            print('Все даты в базе')
+        else:
+            for i in self.inTime():
+                self.itogdate = i
+                try:
+                    f = requests.get('https://cluster-analysis.nalog.ru/webproxy/api/OkvedReport/new/okved/download/base64?dateTime=' + i + 'T07:56:55.723Z&apikey=d808c003f1d69c5fa97713b2a5e1b591')
+                    encoded = json.loads(f.text)
+                    data = base64.b64decode(encoded['content'])
+                    self.toread = BytesIO()
+                    self.toread.write(data)  # pass your 'decrypted' string as the argument here
+                    self.toread.seek(0)  # reset the pointer
+                    timer_work = time.monotonic()
+                    # -------------------------------------------------------------------------------------- Проверка на 0 значения
+                    kontroldf = pd.read_excel(self.toread, sheet_name='Выручка', skiprows=5, nrows=2714, usecols = 'B:FQ')
+                    kontroldf = kontroldf.fillna(0)
+                    kontroldf = kontroldf.replace('-', 0)
+                    if kontroldf.sum(axis = 0, skipna = True).sum() == 0:
+                        a = "ОКВЕД с датой {} имеет нулевые значения".format(i)
+                        print(a)
+                    else:
+                        try:
+                            self.obrabotkaFile('B:CI', 'viruzka_np')
+                            self.obrabotkaFile('CJ:FQ', self.table)
+                        except Exception:
+                            print("Провал загрузки в базу: {}".format(i))
+                            continue
+                except Exception:
+                    
+                    print("Провал скачивания даты с кластера: {}".format(i))
+                    continue
 
 # ---------------------------------------------------------------------------------------------------------------------------- Формирование данных для заливки           
     def obrabotkaFile(self, diapason, inTable):
@@ -85,7 +93,7 @@ class OKVEDload():
         df = df.replace('-', 0)
         df.columns = ['OKVED', 'Respublika_Adygeya', 'Respublika_Bashkortostan', 'Respublika_Buryatiya', 'Respublika_Altaj', 'Respublika_Dagestan', 'Respublika_Ingushetiya', 'Kabardino_Balkarskaya_Respublika', 'Respublika_Kalmykiya', 'Karachaevo_CHerkesskaya_Respublika', 'Respublika_Kareliya', 'Respublika_Komi', 'Respublika_Marij_El', 'Respublika_Mordoviya', 'Respublika_Saha', 'Respublika_Severnaya_Osetiya_Alaniya', 'Respublika_Tatarstan', 'Respublika_Tyva', 'Udmurtskaya_Respublika', 'Respublika_Hakasiya', 'CHechenskaya_Respublika', 'CHuvashskaya_Respublika_CHuvashiya', 'Altajskij_kraj', 'Krasnodarskij_kraj', 'Krasnoyarskij_kraj', 'Primorskij_kraj', 'Stavropolskij_kraj', 'Habarovskij_kraj', 'Amurskaya_oblast', 'Arhangelskaya_oblast', 'Astrahanskaya_oblast', 'Belgorodskaya_oblast', 'Bryanskaya_oblast', 'Vladimirskaya_oblast', 'Volgogradskaya_oblast', 'Vologodskaya_oblast', 'Voronezhskaya_oblast', 'Ivanovskaya_oblast', 'Irkutskaya_oblast', 'Kaliningradskaya_oblast', 'Kaluzhskaya_oblast', 'Kamchatskij_kraj', 'Kemerovskaya_oblast', 'Kirovskaya_oblast', 'Kostromskaya_oblast', 'Kurganskaya_oblast', 'Kurskaya_oblast', 'Leningradskaya_oblast', 'Lipeckaya_oblast', 'Magadanskaya_oblast', 'Moskovskaya_oblast', 'Murmanskaya_oblast', 'Nizhegorodskaya_oblast', 'Novgorodskaya_oblast', 'Novosibirskaya_oblast', 'Omskaya_oblast', 'Orenburgskaya_oblast', 'Orlovskaya_oblast', 'Penzenskaya_oblast', 'Permskij_kraj', 'Pskovskaya_oblast', 'Rostovskaya_oblast', 'Ryazanskaya_oblast', 'Samarskaya_oblast', 'Saratovskaya_oblast', 'Sahalinskaya_oblast', 'Sverdlovskaya_oblast', 'Smolenskaya_oblast', 'Tambovskaya_oblast', 'Tverskaya_oblast', 'Tomskaya_oblast', 'Tulskaya_oblast', 'Tyumenskaya_oblast', 'Ulyanovskaya_oblast', 'CHelyabinskaya_oblast', 'Zabajkalskij_kraj', 'YAroslavskaya_oblast', 'Moskva', 'Sankt_Peterburg', 'Evrejskaya_avtonomnaya_oblast', 'Neneckij_avtonomnyj_okrug', 'Hanty_Mansijskij_avtonomnyj_okrug_YUgra', 'CHukotskij_avtonomnyj_okrug', 'YAmalo_Neneckij_avtonomnyj_okrug', 'Respublika_Krym', 'Sevastopol', 'Inye_territorii']
         df.insert(loc=0, column='datelikedale', value = self.itogdate)
-        df.to_sql(inTable, con=orm.connect("localhost", "root", "", "okved"), if_exists="append", index = False)
+        df.to_sql(inTable, con=self.connect(*self.set_connect, self.myBD), if_exists="append", index = False)
         print("Загрузка прошла успешно: таблица: {} дата: {}".format(inTable, self.itogdate))
 
 if __name__ == '__main__':

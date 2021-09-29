@@ -6,15 +6,18 @@ import pandas
 import numpy as np
 import pandas as pd
 from sqlalchemy import create_engine
+# import sqlalchemy.sql.default_comparator
 
 #--------------------------------------------------------------------------------------------------------- Подключение
 class Orm():
     """ Создает список определенной длины, вставляя элемент в нужное место списка.
     Возвращает созданный список """
-    def __init__(self):
-        self.set_connect = ("localhost", "root", "", "okved")
+    # def __init__(self):
+    def __init__(self, **kwargs):
+        # self.nameBD = "okved"
+        self.set_connect = ("localhost", "root", "")
         # self.set_connect = ("10.252.44.38", "root", "P@ssw0rd", "proba")
-        self.connection = self.connect(*self.set_connect)
+        # self.connection = self.connect(*self.set_connect, self.nameBD)
 
 #---------------------------------------------------------------------------------------------------------
     def connect(self, host_names, user_name, user_password, db_name):
@@ -31,8 +34,9 @@ class Orm():
             print(f"--------------------ОШИБКА---------------- '{e}' ")
         return connection
         
-    def mySQL(self, zapros):
-        sql = pd.read_sql(zapros, con = self.connection)
+    def mySQL(self, zapros, nameTable):
+        # sql = pd.read_sql(zapros, con = self.connection)
+        sql = pd.read_sql(zapros, con = self.connect(*self.set_connect, nameTable))
         return sql
     
     def SelectWhere(self, rows, table, uslovie, data):
