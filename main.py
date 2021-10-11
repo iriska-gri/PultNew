@@ -1,16 +1,20 @@
 import sys  # sys нужен для передачи argv в QApplication
 from PyQt5 import QtWidgets
-import desinger.design  # Это наш конвертированный файл дизайна
+import design  # Это наш конвертированный файл дизайна
 import datetime
-from OKVED import OKVEDload
-from desinger.completed import Ui_finished as finished
+from completed import Ui_finished as finished
 from pathlib import Path
+from OKVED import OKVEDload
+from load106 import load106
+from proba import load107
 
 okvedl = OKVEDload()
+l106 = load106()
+proba = load107()
 
 
 
-class ExampleApp(QtWidgets.QMainWindow, desinger.design.Ui_MainWindow, OKVEDload):
+class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow, OKVEDload):
     def __init__(self, **kwargs):
         super(ExampleApp, self).__init__(**kwargs)
         OKVEDload.__init__(self, **kwargs)
@@ -22,14 +26,16 @@ class ExampleApp(QtWidgets.QMainWindow, desinger.design.Ui_MainWindow, OKVEDload
 
     def browse_folder(self): # Событие загрузки файлов ОКВЭД
         okvedl.loadInSite()
-        self.textBrowser.setText('Вывести возможные ошибки') 
+        # self.infoBlok.setText('Вывести возможные ошибки') 
         self.on_finished()
 
     def showDialog(self): # Открыть окно выбора файла
-        pathhome = Path.home()
-        name = QtWidgets.QFileDialog.getOpenFileName(None, 'Выбор файла', str(pathhome.joinpath('Desktop')),) 
-        # a = windoww.setText(str(name[0]))
-        print(str(name[0]))
+        # pathhome = Path.home()
+        # name = QtWidgets.QFileDialog.getOpenFileName(None, 'Выбор файла', str(pathhome.joinpath('Desktop')),) 
+        # l106.opencsv(str(name[0]))
+        # self.on_finished()
+        proba.opencsv()
+
 
 
     def on_finished(self): # Завершение дествия

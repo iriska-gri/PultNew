@@ -18,14 +18,20 @@ class OKVEDload(Orm):
 
     def __init__(self, **kwargs):
         super(OKVEDload, self).__init__(**kwargs)
-        self.table = 'viruzka_msp'
-        self.myBD = "okved"
-        
+        if self.usering == 'systemsupport':
+            self.tablemsp = 'viruzka_msp'
+            self.tablenp = 'viruzka_np'
+            self.myBD = "okved"
+        else:
+            self.tablemsp = 'Viruzka_MSP'
+            self.tablenp = 'Viruzka_NP'
+            self.myBD = "OKVED"
+            
 
     def inTime(self):
         ddate = date.today() - pd.to_timedelta('30 day')
 
-        dfmindata = orm.mySQL(orm.SelectWhere('min(datelikedale)', self.table, 'datelikedale', ddate), self.myBD)
+        dfmindata = orm.mySQL(orm.SelectWhere('min(datelikedale)', self.tablemsp, 'datelikedale', '>', ddate), self.myBD)
         
         se = dfmindata.values.tolist()
         sdate = se[0][0]
@@ -37,7 +43,7 @@ class OKVEDload(Orm):
             day = sdate + timedelta(days=i)
             datelist.append(day)
         
-        df = orm.mySQL(orm.Selected('datelikedale', self.table), self.myBD)
+        df = orm.mySQL(orm.Selected('datelikedale', self.tablemsp), self.myBD)
         dateinbase = []
         for x in range(len(df.to_numpy().tolist())):
             dateinbase.append(df.to_numpy().tolist()[x][0])
@@ -74,8 +80,8 @@ class OKVEDload(Orm):
                         print(a)
                     else:
                         try:
-                            self.obrabotkaFile('B:CI', 'viruzka_np')
-                            self.obrabotkaFile('CJ:FQ', self.table)
+                            self.obrabotkaFile('B:CI', self.tablenp)
+                            self.obrabotkaFile('CJ:FQ', self.tablemsp)
                         except Exception:
                             print("Провал загрузки в базу: {}".format(i))
                             continue

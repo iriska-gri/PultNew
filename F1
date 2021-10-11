@@ -4,6 +4,6 @@ pyuic5 completed.ui -o completed.py
 pyinstaller main.py --onefile --icon=c:\users\kuroe\desktop\projects\pult\images\ico.ico
 pyinstaller main.py --onefile --icon=C:\Users\systemsupport\Desktop\load_OKVED\images\ico.ico
 
-pyinstaller.exe --onefile main.spec
+!!!! ------ pyinstaller.exe --onefile main.spec
 
 
