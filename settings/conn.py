@@ -29,7 +29,7 @@ class Orm():
             print(self.usering)
             
             # self.set_connect = ("10.252.44.38", "root", "P@ssw0rd")
-            self.set_connect = ("10.252.44.38", "root", 'P@ssw0rd')
+            self.set_connect = ("10.252.44.38", "root", "P@ssw0rd")
             # self.set_connect = ("10.252.45.177", "root")
 
 #---------------------------------------------------------------------------------------------------------

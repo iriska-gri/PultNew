@@ -23,10 +23,11 @@ class OKVEDload(Orm):
             self.tablenp = 'viruzka_np'
             self.myBD = "okved"
         else:
+            
             self.tablemsp = 'Viruzka_MSP'
             self.tablenp = 'Viruzka_NP'
             self.myBD = "OKVED"
-            
+            print(self.tablemsp)
 
     def inTime(self):
         ddate = date.today() - pd.to_timedelta('30 day')
@@ -80,8 +81,8 @@ class OKVEDload(Orm):
                         print(a)
                     else:
                         try:
-                            self.obrabotkaFile('B:CI', self.tablenp)
-                            self.obrabotkaFile('CJ:FQ', self.tablemsp)
+                            self.obrabotkaFile('B:CI', self.tablenp, 2714)
+                            self.obrabotkaFile('CJ:FQ', self.tablemsp, 2714)
                         except Exception:
                             print("Провал загрузки в базу: {}".format(i))
                             continue
@@ -91,9 +92,9 @@ class OKVEDload(Orm):
                     continue
 
 # ---------------------------------------------------------------------------------------------------------------------------- Формирование данных для заливки           
-    def obrabotkaFile(self, diapason, inTable):
-        idOkved = pd.read_excel(self.toread, sheet_name='Выручка', skiprows=5, nrows=2714, usecols = 'A')
-        np = pd.read_excel(self.toread, sheet_name='Выручка', skiprows=5, nrows=2714, usecols = diapason)
+    def obrabotkaFile(self, diapason, inTable, row):
+        idOkved = pd.read_excel(self.toread, sheet_name='Выручка', skiprows=5, nrows=row, usecols = 'A')
+        np = pd.read_excel(self.toread, sheet_name='Выручка', skiprows=5, nrows=row, usecols = diapason)
         df = idOkved.join(np)
         df = df.fillna(0)
         df = df.replace('-', 0)

@@ -40,4 +40,3 @@ class load107(Orm):
 
 if __name__ == '__main__':
     load107().opencsv() 
-  

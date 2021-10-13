@@ -5,6 +5,7 @@ from sqlalchemy import create_engine
 from settings.conn import Orm
 from settings.readFiles import read_files
 import json
+import io
 from io import BytesIO
 
 import requests
@@ -29,9 +30,9 @@ class load106(Orm):
         # self.way = way
         
         
-    def opencsv(self, name):
-    # def opencsv(self):
-        # name='C:/Users/systemsupport/Desktop/1.csv'
+    # def opencsv(self, name):
+    def opencsv(self):
+        name='C:/Users/systemsupport/Desktop/report106_1000005144_20211013_082303.csv'
         self.csv_df = pd.read_csv(name, sep=';', header=None, engine='python', encoding = None)
         # ------------------------------------------------------------------------------------------- Основные данные по файлу (settings))
         myrows = {1 : ('actions', 'id_actions, actions', 'sprav_actions'),

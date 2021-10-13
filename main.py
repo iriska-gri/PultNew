@@ -1,13 +1,16 @@
 import sys  # sys нужен для передачи argv в QApplication
 from PyQt5 import QtWidgets
+from PyQt5 import QtCore, QtGui
 import design  # Это наш конвертированный файл дизайна
 import datetime
 from completed import Ui_finished as finished
 from pathlib import Path
 from OKVED import OKVEDload
+from okv import OKVEDmanual
 from load106 import load106
 from proba import load107
 
+ol = OKVEDmanual()
 okvedl = OKVEDload()
 l106 = load106()
 proba = load107()
@@ -19,15 +22,38 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow, OKVEDload):
         super(ExampleApp, self).__init__(**kwargs)
         OKVEDload.__init__(self, **kwargs)
         self.setupUi(self)  # Это нужно для инициализации нашего дизайна
-        self.OKVED.clicked.connect(self.browse_folder)
+        self.OKVED.clicked.connect(self.on_radio_button_clicked)
         self.load106.clicked.connect(self.showDialog)
-        
-        
+        self.textEdit.setReadOnly(True)
+        # self.textEdit.setBackgroundVisible(QtGui.QColor(124, 124, 134))
+        # self.textEdit.setBackgroundVisible(False)
+        self.RadioManualInput.toggled.connect(self.on_radio_color) # Выбор заливки ОКВЕД в ручную или с сайта
+        # self.textEdit.textChanged.connect(self.magik)
 
-    def browse_folder(self): # Событие загрузки файлов ОКВЭД
+    def on_radio_color(self): # Выбирает цвет для ввода данных
+        if self.RadioManualInput.isChecked(): 
+            self.textEdit.setReadOnly(False)
+            self.textEdit.setStyleSheet("background-color: rgb(255, 255, 255)")
+        else:
+            self.textEdit.setStyleSheet("background-color: rgb(229, 229, 229)")
+            self.textEdit.setReadOnly(True)
+
+    def on_radio_button_clicked(self): # Выбирает загрузку ОКВЭД вручную или с сайта
+        if self.RadioManualInput.isChecked():
+            self.OKVEDmanual()
+        else:
+            self.OKVEDsait()
+        
+    def OKVEDsait(self):
         okvedl.loadInSite()
-        # self.infoBlok.setText('Вывести возможные ошибки') 
         self.on_finished()
+
+    def OKVEDmanual(self): # Событие загрузки файлов ОКВЭД
+        text = self.textEdit.toPlainText() 
+        pathhome = Path.home()
+        name = QtWidgets.QFileDialog.getOpenFileName(None, 'Выбор файла', str(pathhome.joinpath('Desktop')),) 
+        ol.loadSite(str(name[0]), int(text)-1)
+
 
     def showDialog(self): # Открыть окно выбора файла
         # pathhome = Path.home()
