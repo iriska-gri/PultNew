@@ -26,10 +26,10 @@ class OKVEDmanual(OKVEDload):
         ss = pd.read_excel(self.toread, sheet_name='Выручка', skiprows=1, nrows=0, usecols = 'B')
         stolb = pd.read_excel(name, sheet_name='Выручка', usecols = 'A')
         dataexcel =  pd.to_datetime(ss.columns[0]).date()
-        datastr = str(dataexcel)
-        datasplit = datastr.split('-')
-        databse = datasplit[0] + '-' + datasplit[2] + '-' + datasplit[1]
-        self.itogdate = databse
+        # datastr = str(dataexcel)
+        # datasplit = datastr.split('-')
+        # databse = datasplit[0] + '-' + datasplit[2] + '-' + datasplit[1]
+        self.itogdate = dataexcel
         nb_row = len(stolb.index)-7 # Сичтает количество строк в файле
         print("Количество строк в файле {} - {}".format(name, nb_row))
         self.obrabotkaFile('B:CI', self.tablenp, nb_row)

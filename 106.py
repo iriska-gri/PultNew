@@ -32,7 +32,7 @@ class load106(Orm):
     # def opencsv(self, name):
     def opencsv(self):
         name='C:/Users/systemsupport/Desktop/report106_1000005103_20211005_081401.csv'
-        self.csv_df = pd.read_csv(name, sep=';', header=None, engine='python', encoding = None)
+        self.csv_df = pd.read_csv(name, sep=';', header=None, engine='python', encoding ='cp1251', skiprows=1)
         # ------------------------------------------------------------------------------------------- Основные данные по файлу (settings))
         myrows = {1 : ('actions', 'id_actions, actions', 'sprav_actions'),
                   3 : ('task_step_name', 'task_step_id, task_step_name', 'sprav_task_step_name'),
