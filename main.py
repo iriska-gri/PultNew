@@ -11,6 +11,7 @@ from OKVEDmanualstroki import OKVEDmanualsrt
 from load106 import load106
 from proba import load107
 from settings.conn import Orm
+import time
 
 orm = Orm()
 okvedstr = OKVEDmanualsrt()
@@ -18,6 +19,7 @@ okvedm = OKVEDmanual()
 okvedl = OKVEDload()
 l106 = load106()
 proba = load107()
+
 
 
 
@@ -32,6 +34,7 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow, OKVEDload):
         # self.dateStart.setReadOnly(True)
         self.checkStroki.toggled.connect(self.on_radio_Stroki) # Активация окна ввода строк вручную
         self.chekUpdate.toggled.connect(self.on_radio_Data)
+        self.pushButton.clicked.connect(self.delete)
 
 
 
@@ -74,12 +77,14 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow, OKVEDload):
             self.checkStroki.setEnabled(True)
             self.checkManual.setEnabled(True)
 
-    def on_radio_button_clicked(self): # Выбирает загрузку ОКВЭД вручную или с сайта
+    def delete(self):
         if (self.chekUpdate.isChecked()):
-            
             self.OKVEDupdate()
-            self.OKVEDsait()
-        elif (self.checkManual.isChecked() and self.checkStroki.isChecked()):
+
+    def on_radio_button_clicked(self): # Выбирает загрузку ОКВЭД вручную или с сайта
+        # if (self.chekUpdate.isChecked()):
+        #     self.OKVEDsait()
+        if (self.checkManual.isChecked() and self.checkStroki.isChecked()):
             self.OKVEDmanualstroki() 
         elif self.checkManual.isChecked():   
             self.OKVEDmanual()
@@ -114,11 +119,16 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow, OKVEDload):
         temp_varEnd = self.dateEnd.date() 
         var_nameEnd = temp_varEnd.toPyDate()
         if var_nameEnd < var_nameStart:
-            var_nameEnd = self.dateEnd.setDate(temp_varStart)
-            print("Меняем дату")
+            var_End = var_nameStart
+            self.dateEnd.setDate(temp_varStart)
+        else:
+            var_End = temp_varEnd.toPyDate()
         table = [self.tablemsp, self.tablenp]
         for x in table:
-            orm.DeleteWhere(x, 'datelikedale', var_nameStart, var_nameEnd)
+            orm.DeleteWhere(x, 'datelikedale', var_nameStart, var_End)
+        # orm.connclose()
+        print("Обновляемый период с {} по {}".format(var_nameStart, var_End))
+        
 
        
 

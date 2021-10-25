@@ -10,7 +10,8 @@ import requests
 import base64
 from datetime import datetime, timedelta
 import time
-
+import random
+import datetime
 
 orm = Orm()
 
@@ -27,7 +28,6 @@ class OKVEDload(Orm):
             self.tablemsp = 'Viruzka_MSP'
             self.tablenp = 'Viruzka_NP'
             self.myBD = "OKVED"
-            print(self.tablemsp)
 
     def inTime(self):
         ddate = date.today() - pd.to_timedelta('30 day')
@@ -59,37 +59,48 @@ class OKVEDload(Orm):
 
 # -- --------------------------------------------------------------------------------------------------- Скачивание файла с сайта с декодированием
     def loadInSite(self):
+        now = datetime.datetime.now()
+        a = str(now)
+        b = a.split(' ')[1]
+        
+ 
         if self.inTime() == []: # Если все даты в базе
             print('Все даты в базе')
         else:
             for i in self.inTime():
                 self.itogdate = i
-                try:
-                    f = requests.get('https://cluster-analysis.nalog.ru/webproxy/api/OkvedReport/new/okved/download/base64?dateTime=' + i + 'T07:56:55.723Z&apikey=d808c003f1d69c5fa97713b2a5e1b591')
-                    encoded = json.loads(f.text)
-                    data = base64.b64decode(encoded['content'])
-                    self.toread = BytesIO()
-                    self.toread.write(data)  # pass your 'decrypted' string as the argument here
-                    self.toread.seek(0)  # reset the pointer
-                    timer_work = time.monotonic()
-                    # -------------------------------------------------------------------------------------- Проверка на 0 значения
-                    kontroldf = pd.read_excel(self.toread, sheet_name='Выручка', skiprows=5, nrows=2714, usecols = 'B:FQ')
-                    kontroldf = kontroldf.fillna(0)
-                    kontroldf = kontroldf.replace('-', 0)
-                    if kontroldf.sum(axis = 0, skipna = True).sum() == 0:
-                        a = "ОКВЕД с датой {} имеет нулевые значения".format(i)
-                        print(a)
-                    else:
-                        try:
-                            self.obrabotkaFile('B:CI', self.tablenp, 2714)
-                            self.obrabotkaFile('CJ:FQ', self.tablemsp, 2714)
-                        except Exception:
-                            print("Провал загрузки в базу: {}".format(i))
-                            continue
-                except Exception:
+                # try:
+                # f = requests.get('https://cluster-analysis.nalog.ru/webproxy/api/'+key+'?dateTime=' + result_date_convert + str(int(random.random()*1000)) + 'Z&apikey=d808c003f1d69c5fa97713b2a5e1b591')
+                f = requests.get('https://cluster-analysis.nalog.ru/webproxy/api/OkvedReport/new/okved/download/base64?dateTime=' + i + 'T07:56:55.723Z&apikey=d808c003f1d69c5fa97713b2a5e1b591')
+                # f = requests.get('https://cluster-analysis.nalog.ru/webproxy/api/OkvedReport/new/okved/download/base64?dateTime=' + i + 'T' + str(int(random.random()*1000)) + 'Z&apikey=d808c003f1d69c5fa97713b2a5e1b591')
+                # f = requests.get('https://cluster-analysis.nalog.ru/webproxy/api/OkvedReport/new/okved/download/base64?dateTime=' + i + self.kod + 'Z&apikey=d808c003f1d69c5fa97713b2a5e1b591')
+
+                encoded = json.loads(f.text)
+                data = base64.b64decode(encoded['content'])
+                self.toread = BytesIO()
+                self.toread.write(data)  # pass your 'decrypted' string as the argument here
+                self.toread.seek(0)  # reset the pointer
+                timer_work = time.monotonic()
+                # -------------------------------------------------------------------------------------- Проверка на 0 значения
+                stolb = pd.read_excel(self.toread, sheet_name='Выручка', usecols = 'A')
+                nb_row = len(stolb.index)-7 # Сичтает количество строк в файле
+                kontroldf = pd.read_excel(self.toread, sheet_name='Выручка', skiprows=5, nrows=nb_row, usecols = 'B:FQ')
+                kontroldf = kontroldf.fillna(0)
+                kontroldf = kontroldf.replace('-', 0)
+                if kontroldf.sum(axis = 0, skipna = True).sum() == 0:
+                    a = "ОКВЕД с датой {} имеет нулевые значения".format(i)
+                    print(a)
+                else:
+                    try:
+                        self.obrabotkaFile('B:CI', self.tablenp, nb_row)
+                        self.obrabotkaFile('CJ:FQ', self.tablemsp, nb_row)
+                    except Exception:
+                        print("Провал загрузки в базу: {}".format(i))
+                        continue
+                # except Exception:
                     
-                    print("Провал скачивания даты с кластера: {}".format(i))
-                    continue
+                #     print("Провал скачивания даты с кластера: {}".format(i))
+                #     continue
 
 # ---------------------------------------------------------------------------------------------------------------------------- Формирование данных для заливки           
     def obrabotkaFile(self, diapason, inTable, row):

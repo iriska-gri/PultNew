@@ -30,7 +30,7 @@ class OKVEDmanual(OKVEDload):
         datasplit = datastr.split('-')
         databse = datasplit[0] + '-' + datasplit[2] + '-' + datasplit[1]
         self.itogdate = databse
-        nb_row = len(stolb.index)-6 # Сичтает количество строк в файле
+        nb_row = len(stolb.index)-7 # Сичтает количество строк в файле
         print("Количество строк в файле {} - {}".format(name, nb_row))
         self.obrabotkaFile('B:CI', self.tablenp, nb_row)
         self.obrabotkaFile('CJ:FQ', self.tablemsp, nb_row)

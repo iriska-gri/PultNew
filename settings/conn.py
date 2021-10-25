@@ -24,13 +24,13 @@ class Orm():
         
         if self.usering == 'systemsupport':
             self.set_connect = ("localhost", "root", "P@ssw0rd")
-            self.myBDo = "okved"
+            self.myBDokved = "okved"
+            # self.myBD = "sroki_svod"
         else:
             self.set_connect = ("10.252.44.38", "root", "P@ssw0rd")
-            self.myBDo = "OKVED"
-        
-        # nameTable
-        # self.connection = self.connect(*self.set_connect, "okved")
+            self.myBDokved = "OKVED"
+
+        self.connectionOKVED = self.connect(*self.set_connect, self.myBDokved)
 
 
 # #---------------------------------------------------------------------------------------------------------
@@ -44,10 +44,6 @@ class Orm():
         except Error as e:
             print(f"--------------------ОШИБКА---------------- '{e}' ")
         return connection
-
-    def conections(self, nameTable):
-        con = self.connect(*self.set_connect, nameTable)
-        return con
 
     def connclose(self):
         self.conections.close()

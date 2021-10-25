@@ -71,6 +71,9 @@ class Ui_MainWindow(object):
         self.label = QtWidgets.QLabel(self.centralwidget)
         self.label.setGeometry(QtCore.QRect(440, 50, 31, 31))
         self.label.setObjectName("label")
+        self.pushButton = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton.setGeometry(QtCore.QRect(310, 90, 271, 23))
+        self.pushButton.setObjectName("pushButton")
         MainWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(MainWindow)
@@ -85,3 +88,4 @@ class Ui_MainWindow(object):
         self.OKVED.setText(_translate("MainWindow", "OKVED"))
         self.chekUpdate.setText(_translate("MainWindow", "Обновить данные ОКВЕД за период"))
         self.label.setText(_translate("MainWindow", "-"))
+        self.pushButton.setText(_translate("MainWindow", "delete"))
