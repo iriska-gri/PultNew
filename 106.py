@@ -45,7 +45,7 @@ class load106(Orm):
                   15 : ('org_title', 'id_org_title, org_title', 'sprav_org_title'), 
                   16 : ('out_date', ''),
                   18 : ('in_date', ''),
-                  21 : ('registration_number', ''),
+                #   21 : ('registration_number', ''),
                   22 : ('life_situation_name', 'id_life_situation_name, life_situation_name', 'sprav_life_situation_name'),
                   23 : ('snts_code', ''),
                   24 : ('dubl', ''),

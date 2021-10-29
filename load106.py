@@ -40,6 +40,7 @@ class load106(Orm):
                 try:
                     data.decode(x)
                     return x
+                    
                 except:
                     print('Ошибка')
                     continue
@@ -51,22 +52,47 @@ class load106(Orm):
     # def opencsv(self, name):
     def opencsv(self):
         name='C:/Users/systemsupport/Desktop/report106_1000005103_20211005_081401.csv'
-        # encodings = ["utf-8-sig", "cp1252", "iso-8859-1", "latin1"]
-        # try:
-        #     for en in encodings:
-        #         self.csv_df = pd.read_csv(name, sep=';', header=None, engine='python', encoding=en)
-                # pn.read_csv(..., encoding=encoding, ...)
-        # except ValueError:  # or the error you receive
-        # continue
+
         whatcode = self.encode_Control(name)
+        myrows = {1 : ('actions', 'id_actions', 'id_actions, actions', 'sprav_actions'),
+                  3 : ('task_step_name', 'task_step_id', 'task_step_id, task_step_name', 'sprav_task_step_name'),
+                  8 : ('login', 'id_login', 'id_login, login', 'sprav_login'),
+                  15 : ('org_title', 'id_org_title', 'id_org_title, org_title', 'sprav_org_title'), 
+                  22 : ('life_situation_name', 'id_life_situation_name', 'id_life_situation_name, life_situation_name', 'sprav_life_situation_name'),
+                  26 : ('appeal_source', 'id_appeal_source', 'id_appeal_source, appeal_source', 'sprav_appeal')}
+        datarows = [9, 27] # Все столбцы с датами
         for chunk in pd.read_csv(name, sep=';', header=None, na_values='NULL', keep_default_na=False, dtype=str, chunksize=10000, engine='python', encoding = whatcode):
-            self.csv_df = chunk
-            # chunk = chunk.drop(columns=[7,13,14,17,19,20,25])
-            # print(self.csv_df[1])
+            self.chunk = chunk.drop(columns=[2,7,11, 12,13,14,17,19,20,25])
+            for x in datarows:
+                self.formatdataZamena(x)
+            for x in myrows:
+                self.spravkaZamena(myrows[x][2], myrows[x][3], myrows[x][1], x, myrows[x][0])
+            # for x in datarows:
+            #     self.formatdataZamena(x)
+            # self.chunk[9] = pd.to_datetime(self.chunk[9])
+        # self.chunk.to_excel("output.xlsx")
+            print(self.chunk)
+                
+    def spravkaZamena(self, spravRows, spravTable, spravId, chunrows, sprav):
+        dfspravka = orm.mySQL(orm.Selected(spravRows, spravTable), self.myBD)
+        self.chunk = self.chunk.merge(dfspravka, left_on=chunrows, right_on=sprav, how='left')
+        self.chunk[chunrows] = self.chunk[spravId]
+        del self.chunk[spravId]
+        del self.chunk[sprav]
+
+    def formatdataZamena(self, numb):
+
+        # if numb == 27:
+        #     self.chunk[numb] = pd.to_datetime(self.chunk[numb]).dt.date
+        # else:
+        self.chunk[numb] = pd.to_datetime(self.chunk[numb])
+    
+        # merge.to_excel("output.xlsx")
+        
         # ------------------------------------------------------------------------------------------- Основные данные по файлу (settings))
-            myrows = {1 : ('actions', 'id_actions, actions', 'sprav_actions'),
-                    3 : ('task_step_name', 'task_step_id, task_step_name', 'sprav_task_step_name')}
-    #               4 : ('card_id', ''),
+            # myrows = {1 : ('actions', 'id_actions, actions', 'sprav_actions'),
+            #         3 : ('task_step_name', 'task_step_id, task_step_name', 'sprav_task_step_name')}
+                    # 4 : ('card_id', '')}
     #               5 : ('card_task_id', ''),
     #               6 : ('tax_code', ''),
     #               8 : ('login', 'id_login, login', 'sprav_login'),
@@ -82,7 +108,8 @@ class load106(Orm):
     #               26 : ('appeal_source', 'id_appeal_source, appeal_source', 'sprav_appeal'),
     #               27 : ('date_reg_appeal', '')
     #               }
-            datarows = [9, 10, 16, 18, 27] # Все столбцы с датами
+            # print(self.csv_df)
+            # datarows = [9, 10, 16, 18, 27] # Все столбцы с датами
     #     simvol = [21] # Удаление данных после символа
     #     # ------------------------------------------------------------------------------------------- Подготовка экселевского файла part 1
     #     self.csv_df[5] = self.csv_df[5].fillna(0)
@@ -117,27 +144,27 @@ class load106(Orm):
     #     for x in simvol:
     #         self.simvolZamena(x, '.')
     #     # -------------------------------------------------------------------------------------------
-            dfrows = self.csv_df[[0]]
-            dfrows.columns = ['history_id']
+            # dfrows = self.csv_df[[0]]
+            # dfrows.columns = ['history_id']
         
-            myloc = 1
+            # myloc = 1
         
-            zamena = []
-            for x in myrows:
-                if len(myrows[x]) > 2:
-                    zamena.append(x)
-                self.obrabrows = self.csv_df[[x]]
-                self.obrabrows.columns = [myrows[x][0]]
-                print(self.obrabrows.columns)
-                # for z in zamena:
-                #     if x == z:
-                #         self.obrabrows = self.spravkaZamena(myrows[z][1], myrows[z][2], myrows[z][0])
-                        # a = int(self.obrabrows)
-                # dfrows.insert(loc=myloc, column=myrows[x][0], value = self.obrabrows)
+            # zamena = []
+            # for x in myrows:
+            #     if len(myrows[x]) > 2:
+            #         zamena.append(x)
+            #     self.obrabrows = self.csv_df[[x]]
+            #     self.obrabrows.columns = [myrows[x][0]]
+            #     print(self.obrabrows.columns)
+            #     # for z in zamena:
+            #     #     if x == z:
+            #     #         self.obrabrows = self.spravkaZamena(myrows[z][1], myrows[z][2], myrows[z][0])
+            #             # a = int(self.obrabrows)
+            #     dfrows.insert(loc=myloc, column=myrows[x][0], value = self.obrabrows)
                 
-                myloc += 1
-            dfrows = dfrows.drop_duplicates()
-            print(dfrows)
+            #     myloc += 1
+            # dfrows = dfrows.drop_duplicates()
+            # print(dfrows)
 
     #     # ------------------------------------------------------------------------------------------- Подготовка экселевского файла part 2
     #     act = [16, 34, 63]
@@ -167,11 +194,11 @@ class load106(Orm):
     # def probeliZamena(self, numb):
     #     self.csv_df[numb] = self.csv_df[numb].str.strip() # Удаляем все пробелы в столбце
 
-    def spravkaZamena(self, spravRows, spravTable, nameRows):    
-        dfspravka = orm.mySQL(orm.Selected(spravRows, spravTable), self.myBD)
-        merge = self.obrabrows.merge(dfspravka, left_on=nameRows, right_on=nameRows, how='left')
-        del merge[nameRows]
-        return merge
+    # def spravkaZamena(self, spravRows, spravTable, nameRows):    
+    #     dfspravka = orm.mySQL(orm.Selected(spravRows, spravTable), self.myBD)
+    #     merge = self.obrabrows.merge(dfspravka, left_on=nameRows, right_on=nameRows, how='left')
+    #     del merge[nameRows]
+    #     return merge
 
 if __name__ == '__main__':
     load106().opencsv() 
