@@ -40,7 +40,7 @@ class load106(Orm):
                 try:
                     data.decode(x)
                     return x
-                    
+
                 except:
                     print('Ошибка')
                     continue
@@ -63,7 +63,14 @@ class load106(Orm):
         datarows = [9, 27] # Все столбцы с датами
         for chunk in pd.read_csv(name, sep=';', header=None, na_values='NULL', keep_default_na=False, dtype=str, chunksize=10000, engine='python', encoding = whatcode):
             self.chunk = chunk.drop(columns=[2,7,11, 12,13,14,17,19,20,25])
+            # chunk = chunk.fillna(r'\N')
+                #     self.csv_df[5] = self.csv_df[5].fillna(0)
+    #     self.csv_df[10] = self.csv_df[10].fillna("1900-01-01 00:00:00")
+    #     self.csv_df[23] = self.csv_df[23].fillna('35100')
+    #     self.csv_df[24] = self.csv_df[24].fillna(0)
+    #     self.csv_df[23] = self.csv_df[23].replace(to_replace ='-1', value ='35100')
             for x in datarows:
+                self.simvolZamena(x, '+')
                 self.formatdataZamena(x)
             for x in myrows:
                 self.spravkaZamena(myrows[x][2], myrows[x][3], myrows[x][1], x, myrows[x][0])
@@ -80,12 +87,16 @@ class load106(Orm):
         del self.chunk[spravId]
         del self.chunk[sprav]
 
+    def simvolZamena(self, numb, sim):    
+        if (np.core.defchararray.find(self.chunk[numb].values.astype(str), sim) > -1).any() == True: # Просмотр наличия символа в строке
+            self.chunk[numb] = self.chunk[numb].apply(lambda x: x.split(sim)[0]) # Производит замену после определнного символа
+
     def formatdataZamena(self, numb):
 
-        # if numb == 27:
-        #     self.chunk[numb] = pd.to_datetime(self.chunk[numb]).dt.date
-        # else:
-        self.chunk[numb] = pd.to_datetime(self.chunk[numb])
+        if numb == 27:
+            self.chunk[numb] = pd.to_datetime(self.chunk[numb]).dt.date
+        else:
+            self.chunk[numb] = pd.to_datetime(self.chunk[numb])
     
         # merge.to_excel("output.xlsx")
         
