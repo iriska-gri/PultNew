@@ -54,31 +54,59 @@ class load106(Orm):
         name='C:/Users/systemsupport/Desktop/report106_1000005103_20211005_081401.csv'
 
         whatcode = self.encode_Control(name)
-        myrows = {1 : ('actions', 'id_actions', 'id_actions, actions', 'sprav_actions'),
+        myrows = {0 : ('history_id', ''),
+                  1 : ('actions', 'id_actions', 'id_actions, actions', 'sprav_actions'),
                   3 : ('task_step_name', 'task_step_id', 'task_step_id, task_step_name', 'sprav_task_step_name'),
+                  4 : ('card_id', ''),
+                  5 : ('card_task_id', ''),
+                  6 : ('tax_code', ''),
                   8 : ('login', 'id_login', 'id_login, login', 'sprav_login'),
+                  9 : ('start_ts_reg', ''),
+                  10 : ('end_ts_reg', ''),
                   15 : ('org_title', 'id_org_title', 'id_org_title, org_title', 'sprav_org_title'), 
+                  16 : ('out_date', ''),
+                  18 : ('in_date', ''),
+                  21 : ('registration_number', ''),
                   22 : ('life_situation_name', 'id_life_situation_name', 'id_life_situation_name, life_situation_name', 'sprav_life_situation_name'),
-                  26 : ('appeal_source', 'id_appeal_source', 'id_appeal_source, appeal_source', 'sprav_appeal')}
-        datarows = [9, 27] # Все столбцы с датами
-        for chunk in pd.read_csv(name, sep=';', header=None, na_values='NULL', keep_default_na=False, dtype=str, chunksize=10000, engine='python', encoding = whatcode):
-            self.chunk = chunk.drop(columns=[2,7,11, 12,13,14,17,19,20,25])
-            # chunk = chunk.fillna(r'\N')
+                  23 : ('snts_code', ''),
+                  24 : ('dubl', ''),
+                  26 : ('appeal_source', 'id_appeal_source', 'id_appeal_source, appeal_source', 'sprav_appeal'),
+                  27 : ('date_reg_appeal', '')}
+        datarows = [9, 10, 27] # Все столбцы с датами
+        spravrows = [1, 3, 8, 15, 22, 26] #Все столбцы для замены со справочником
+        for chunk in pd.read_csv(name, sep=';', header=None, na_values= r'\N', keep_default_na=False, dtype=str, chunksize=10000, engine='python', encoding = whatcode):
+            self.chunk = chunk.drop(columns=[2,7,11,12,13,14,17,19,20,25])
+            self.probeliZamena(3)
+            # self.chunk = self.chunk.fillna(r'\N')
+            # self.chunk[5] = self.chunk[5].fillna(0)
+                # self.chunk.columns = [myrows[x][0]]
+            
                 #     self.csv_df[5] = self.csv_df[5].fillna(0)
     #     self.csv_df[10] = self.csv_df[10].fillna("1900-01-01 00:00:00")
     #     self.csv_df[23] = self.csv_df[23].fillna('35100')
     #     self.csv_df[24] = self.csv_df[24].fillna(0)
-    #     self.csv_df[23] = self.csv_df[23].replace(to_replace ='-1', value ='35100')
+    #     self.c
+            self.chunk[23] = self.chunk[23].replace(to_replace ='', value ='35100')
+            self.chunk[5] = self.chunk[5].replace(to_replace ='', value ='0')
+            self.chunk[24] = self.chunk[24].replace(to_replace ='', value ='0')
+            self.chunk[24] = self.chunk[24].replace(to_replace ='-1', value ='0')
+            self.chunk[10] = self.chunk[10].replace(to_replace ='', value ="1900-01-01 00:00:00")
             for x in datarows:
                 self.simvolZamena(x, '+')
                 self.formatdataZamena(x)
+            for x in spravrows:
+                self.spravkaZamena(myrows[x][2], myrows[x][3], myrows[x][1], x, myrows[x][0]) #Замена всех данных со справочником
             for x in myrows:
-                self.spravkaZamena(myrows[x][2], myrows[x][3], myrows[x][1], x, myrows[x][0])
-            # for x in datarows:
-            #     self.formatdataZamena(x)
-            # self.chunk[9] = pd.to_datetime(self.chunk[9])
-        # self.chunk.to_excel("output.xlsx")
+                self.chunk.rename(columns={x: myrows[x][0]}, inplace=True) # Переназывай столбцы
+            # ------------------------------------------------------------------------------------------- Подготовка экселевского файла
+            act = [16, 34, 63]
+            for x in act:
+                self.chunk.loc[self.chunk['actions'] == x, 'task_step_name'] = 1
+            self.chunk = self.chunk.astype({'history_id': int}) #Делаем столбец числовым
+            self.chunk.loc[(self.chunk.actions == 34), 'history_id'] *= -1
+            print(self.chunk['snts_code'])
             print(self.chunk)
+        self.chunk.to_excel("output.xlsx")
                 
     def spravkaZamena(self, spravRows, spravTable, spravId, chunrows, sprav):
         dfspravka = orm.mySQL(orm.Selected(spravRows, spravTable), self.myBD)
@@ -92,13 +120,13 @@ class load106(Orm):
             self.chunk[numb] = self.chunk[numb].apply(lambda x: x.split(sim)[0]) # Производит замену после определнного символа
 
     def formatdataZamena(self, numb):
-
         if numb == 27:
             self.chunk[numb] = pd.to_datetime(self.chunk[numb]).dt.date
         else:
             self.chunk[numb] = pd.to_datetime(self.chunk[numb])
     
-        # merge.to_excel("output.xlsx")
+    def probeliZamena(self, numb):
+        self.chunk[numb] = self.chunk[numb].str.strip() # Удаляем все пробелы в столбце        
         
         # ------------------------------------------------------------------------------------------- Основные данные по файлу (settings))
             # myrows = {1 : ('actions', 'id_actions, actions', 'sprav_actions'),
