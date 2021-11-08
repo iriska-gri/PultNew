@@ -7,7 +7,7 @@ from settings.readFiles import read_files
 import json
 import io
 from io import BytesIO
-
+import os
 import requests
 import base64
 from datetime import datetime, timedelta
@@ -40,7 +40,6 @@ class load106(Orm):
                 try:
                     data.decode(x)
                     return x
-
                 except:
                     print('Ошибка')
                     continue
@@ -72,29 +71,50 @@ class load106(Orm):
                   24 : ('dubl', ''),
                   26 : ('appeal_source', 'id_appeal_source', 'id_appeal_source, appeal_source', 'sprav_appeal'),
                   27 : ('date_reg_appeal', '')}
-        datarows = [9, 10, 27] # Все столбцы с датами
+        datarows = [9, 10, 27, 16, 18] # Все столбцы с датами
         spravrows = [1, 3, 8, 15, 22, 26] #Все столбцы для замены со справочником
-        for chunk in pd.read_csv(name, sep=';', header=None, na_values= r'\N', keep_default_na=False, dtype=str, chunksize=10000, engine='python', encoding = whatcode):
+        gg = 0
+        for chunk in pd.read_csv(name, sep=';', header=None, dtype=str, chunksize=10000, engine='python', encoding = whatcode):
             self.chunk = chunk.drop(columns=[2,7,11,12,13,14,17,19,20,25])
             self.probeliZamena(3)
-            # self.chunk = self.chunk.fillna(r'\N')
-            # self.chunk[5] = self.chunk[5].fillna(0)
-                # self.chunk.columns = [myrows[x][0]]
-            
-                #     self.csv_df[5] = self.csv_df[5].fillna(0)
-    #     self.csv_df[10] = self.csv_df[10].fillna("1900-01-01 00:00:00")
-    #     self.csv_df[23] = self.csv_df[23].fillna('35100')
-    #     self.csv_df[24] = self.csv_df[24].fillna(0)
-    #     self.c
-            self.chunk[23] = self.chunk[23].replace(to_replace ='', value ='35100')
-            self.chunk[5] = self.chunk[5].replace(to_replace ='', value ='0')
-            self.chunk[24] = self.chunk[24].replace(to_replace ='', value ='0')
+            # self.chunk[23] = self.chunk[23].replace(to_replace = r'\N', value ='35100')
+            # self.chunk[5] = self.chunk[5].replace(to_replace =r'\N', value ='0')
+            # self.chunk[24] = self.chunk[24].replace(to_replace = r'\N', value ='0')
+            # # self.chunk[24] = self.chunk[24].replace(to_replace ='-1', value ='0')
+            # self.chunk[10] = self.chunk[10].replace(to_replace =r'\N', value ="1900-01-01 00:00:00")
+            # self.chunk[15] = self.chunk[15].replace(to_replace =r'\N', value ='1')
+
+            self.chunk[23] = self.chunk[23].fillna('35100')
+            self.chunk[5] = self.chunk[5].fillna(0)
+            self.chunk[24] = self.chunk[24].fillna(0)
             self.chunk[24] = self.chunk[24].replace(to_replace ='-1', value ='0')
-            self.chunk[10] = self.chunk[10].replace(to_replace ='', value ="1900-01-01 00:00:00")
+            self.chunk[10] = self.chunk[10].fillna("1900-01-01 00:00:00")
+            self.chunk[15] = self.chunk[15].fillna('')
+            self.chunk[23] = self.chunk[23].replace(to_replace ='-1', value ='35100')
+            self.chunk[21] = self.chunk[21].fillna(0)
+
+
+            # self.chunk[18] = self.chunk[18].replace(to_replace ='', value = None)
+            # self.chunk[16] = self.chunk[16].replace(to_replace ='', value = None)
+
+            # ----------------------------------------------------------------------------------------------------------------------------- Поиск и замена текста на код (единичный случай)
+            stringZamena = self.chunk[23][~self.chunk[23].str.contains('0|1|2|3|4|5|6|7|8|9')].unique()  # Поиск всех нечисловых значений
+            naZamenu = []
+            for b in stringZamena:
+                try:
+                    a = orm.mySQL(orm.SelectWhere('cod_SNTS', self.spravSNTS, 'vid_object', '=', b), self.myBD)
+                    naZamenu.append(a['cod_SNTS'][0])
+                except Exception:
+                    continue
+            for x in range(len(stringZamena)):
+                self.chunk[23] = self.chunk[23].replace(to_replace = stringZamena[x], value = naZamenu[x])
+                self.chunk[23] = self.chunk[23].astype(str)
+            # -----------------------------------------------------------------------------------------------------------------------------
             for x in datarows:
                 self.simvolZamena(x, '+')
                 self.formatdataZamena(x)
             for x in spravrows:
+                # print(myrows[x][2], myrows[x][3], myrows[x][1], x, myrows[x][0])
                 self.spravkaZamena(myrows[x][2], myrows[x][3], myrows[x][1], x, myrows[x][0]) #Замена всех данных со справочником
             for x in myrows:
                 self.chunk.rename(columns={x: myrows[x][0]}, inplace=True) # Переназывай столбцы
@@ -104,9 +124,19 @@ class load106(Orm):
                 self.chunk.loc[self.chunk['actions'] == x, 'task_step_name'] = 1
             self.chunk = self.chunk.astype({'history_id': int}) #Делаем столбец числовым
             self.chunk.loc[(self.chunk.actions == 34), 'history_id'] *= -1
-            print(self.chunk['snts_code'])
-            print(self.chunk)
-        self.chunk.to_excel("output.xlsx")
+            self.chunk.insert(loc=0, column='status_task', value = 3)
+            
+            self.chunk = self.chunk.drop_duplicates()
+            print(gg)
+            # self.chunk.to_excel("output.xlsx")
+            # try:
+            self.chunk.to_sql(self.inTable, con=self.connect(*self.set_connect, self.myBD), if_exists='replace', index = False)
+            # except:
+            #     print('Ошибка заливки')
+            #     continue
+            
+            # os.remove('C:/Users/systemsupport/Desktop/load_OKVED/output.xlsx')
+            gg +=1              
                 
     def spravkaZamena(self, spravRows, spravTable, spravId, chunrows, sprav):
         dfspravka = orm.mySQL(orm.Selected(spravRows, spravTable), self.myBD)
@@ -127,7 +157,7 @@ class load106(Orm):
     
     def probeliZamena(self, numb):
         self.chunk[numb] = self.chunk[numb].str.strip() # Удаляем все пробелы в столбце        
-        
+    #     # -----------------------------23].replace(to_replace = stringZamena[x], value = naZamenu[x])        
         # ------------------------------------------------------------------------------------------- Основные данные по файлу (settings))
             # myrows = {1 : ('actions', 'id_actions, actions', 'sprav_actions'),
             #         3 : ('task_step_name', 'task_step_id, task_step_name', 'sprav_task_step_name')}
