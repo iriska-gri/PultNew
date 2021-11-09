@@ -12,16 +12,19 @@ import requests
 import base64
 from datetime import datetime, timedelta
 import time
+from pathlib import Path
 
 orm = Orm()
 
 pd.options.display.float_format ='{:,.0f}'.format
+
 
 class load106(Orm):
     def __init__(self, **kwargs):
         super(load106, self).__init__(**kwargs)
         if self.usering == 'systemsupport':
             self.myBD = "sroki_svod"
+            self.inTablek = 'a_all_data_106_k'
             self.inTable = 'a_all_data_106'
             self.spravSNTS = 'sprav_snts_svod'
         else:
@@ -51,7 +54,7 @@ class load106(Orm):
     # def opencsv(self, name):
     def opencsv(self):
         name='C:/Users/systemsupport/Desktop/report106_1000005103_20211005_081401.csv'
-
+        
         whatcode = self.encode_Control(name)
         myrows = {0 : ('history_id', ''),
                   1 : ('actions', 'id_actions', 'id_actions, actions', 'sprav_actions'),
@@ -71,9 +74,12 @@ class load106(Orm):
                   24 : ('dubl', ''),
                   26 : ('appeal_source', 'id_appeal_source', 'id_appeal_source, appeal_source', 'sprav_appeal'),
                   27 : ('date_reg_appeal', '')}
+
+
         datarows = [9, 10, 27, 16, 18] # Все столбцы с датами
         spravrows = [1, 3, 8, 15, 22, 26] #Все столбцы для замены со справочником
         gg = 0
+        filestr = str(Path(name).parent.joinpath("new_file_.csv")) # Сохранить каждый чанк в файл
         for chunk in pd.read_csv(name, sep=';', header=None, dtype=str, chunksize=10000, engine='python', encoding = whatcode):
             self.chunk = chunk.drop(columns=[2,7,11,12,13,14,17,19,20,25])
             self.probeliZamena(3)
@@ -125,18 +131,24 @@ class load106(Orm):
             self.chunk = self.chunk.astype({'history_id': int}) #Делаем столбец числовым
             self.chunk.loc[(self.chunk.actions == 34), 'history_id'] *= -1
             self.chunk.insert(loc=0, column='status_task', value = 3)
-            
-            self.chunk = self.chunk.drop_duplicates()
+            gg +=1
             print(gg)
+        self.chunk.to_csv('new_file_.csv', sep=';', quoting = 1, mode='a', header=False, index=False)
+        orm.load_local('new_file_.csv', self.inTable)
+            # Path(filestr).unlink()
+            # self.chunk = self.chunk.drop_duplicates()
+            
             # self.chunk.to_excel("output.xlsx")
             # try:
-            self.chunk.to_sql(self.inTable, con=self.connect(*self.set_connect, self.myBD), if_exists='replace', index = False)
-            # except:
-            #     print('Ошибка заливки')
-            #     continue
+            
+            # self.chunk.to_sql(self.inTablek, con=self.connect(*self.set_connect, self.myBD), if_exists='append', index = False)
+
             
             # os.remove('C:/Users/systemsupport/Desktop/load_OKVED/output.xlsx')
-            gg +=1              
+            # 
+        # sql = pd.read_sql("SELECT DISTINCT * from a_all_data_106_k", con = self.connect(*self.set_connect, self.myBD))   
+        # print(sql) 
+        # sql.to_sql(self.inTable, con=self.connect(*self.set_connect, self.myBD), if_exists='append', index = False)              
                 
     def spravkaZamena(self, spravRows, spravTable, spravId, chunrows, sprav):
         dfspravka = orm.mySQL(orm.Selected(spravRows, spravTable), self.myBD)
@@ -156,7 +168,13 @@ class load106(Orm):
             self.chunk[numb] = pd.to_datetime(self.chunk[numb])
     
     def probeliZamena(self, numb):
-        self.chunk[numb] = self.chunk[numb].str.strip() # Удаляем все пробелы в столбце        
+        self.chunk[numb] = self.chunk[numb].str.strip() # Удаляем все пробелы в столбце
+
+
+
+
+
+
     #     # -----------------------------23].replace(to_replace = stringZamena[x], value = naZamenu[x])        
         # ------------------------------------------------------------------------------------------- Основные данные по файлу (settings))
             # myrows = {1 : ('actions', 'id_actions, actions', 'sprav_actions'),

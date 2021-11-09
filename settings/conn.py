@@ -25,13 +25,13 @@ class Orm():
         if self.usering == 'systemsupport':
             self.set_connect = ("localhost", "root", "P@ssw0rd")
             self.myBDokved = "okved"
-            # self.myBD = "sroki_svod"
+            self.myBD = "sroki_svod"
         else:
             self.set_connect = ("10.252.44.38", "root", "P@ssw0rd")
             self.myBDokved = "OKVED"
 
         self.connectionOKVED = self.connect(*self.set_connect, self.myBDokved)
-
+        self.connectionSroki = self.connect(*self.set_connect, self.myBD)
 
 # #---------------------------------------------------------------------------------------------------------
     # def connect(self, host_names, user_name, user_password, db_name):
@@ -45,15 +45,15 @@ class Orm():
             print(f"--------------------ОШИБКА---------------- '{e}' ")
         return connection
 
-    def connclose(self):
-        self.conections.close()
-        print("Соединение закрыто")
+    # def connclose(self):
+    #     self.conections.close()
+    #     print("Соединение закрыто")
     
     def DeleteWhere(self, table, t, data1, data2):
     # def DeleteWhere(self, table, t):
         # sql = f"""DELETE FROM {table} WHERE {t} >= {data1} AND {t} <= {data2}"""
         sql = f"""DELETE FROM {table} WHERE {t} >= '{data1}' AND {t} <= '{data2}'"""
-        s = self.conections(self.myBDo).execute(sql)
+        s = self.connectionOKVED.execute(sql)
         return s
         
     def mySQL(self, zapros, nameTable):
@@ -68,3 +68,15 @@ class Orm():
         s = f"""SELECT DISTINCT {rows} FROM {table}"""
         return s
 
+    def load_global(self):
+        sql ='SET GLOBAL local_infile = 1;'
+        s = self.connectionSroki.execute(sql) 
+        return s       
+
+    def load_local(self, val, tablename):
+        # sql ='SET GLOBAL local_infile = 1;'
+        # s = self.connectionSroki.execute(sql)
+        self.load_global()
+        sql ='LOAD DATA LOCAL INFILE "'+ val.replace('\\', '/')+'" REPLACE INTO TABLE '+ tablename +'  CHARACTER SET utf8 FIELDS TERMINATED BY ";"  ENCLOSED BY """" LINES TERMINATED BY "\r\n" ;'
+        s = self.connectionSroki.execute(sql)
+        return s
