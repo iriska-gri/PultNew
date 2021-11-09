@@ -1,17 +1,20 @@
 import mysql.connector
 from mysql.connector import Error
+
 import getpass # Определить пользователя
 import datetime
 import pandas
 import numpy as np
 import pandas as pd
 from sqlalchemy import create_engine
+from sqlalchemy.orm import Session, sessionmaker
 import getpass # Определить пользователя
 from mysql.connector.locales.eng import client_error
 # from urllib import quote_plus as urlquote
 import urllib.parse
 from urllib.parse import quote as urlquote
 
+# session = Session()
 
 #--------------------------------------------------------------------------------------------------------- Подключение
 class Orm():
@@ -31,6 +34,7 @@ class Orm():
             self.myBDokved = "OKVED"
 
         self.connectionOKVED = self.connect(*self.set_connect, self.myBDokved)
+        
         self.connectionSroki = self.connect(*self.set_connect, self.myBD)
 
 # #---------------------------------------------------------------------------------------------------------
@@ -40,10 +44,11 @@ class Orm():
         connection = None
         try:
             connection = create_engine(f"""mysql+mysqlconnector://{user_name}:%s@{host_names}/{db_name}""" % urlquote(user_password))
+            session = Session(bind=connection)
             print("Connection to MySQL DB successful")
         except Error as e:
             print(f"--------------------ОШИБКА---------------- '{e}' ")
-        return connection
+        return session
 
     # def connclose(self):
     #     self.conections.close()
@@ -69,14 +74,22 @@ class Orm():
         return s
 
     def load_global(self):
-        sql ='SET GLOBAL local_infile = 1;'
+        # sql ='SET GLOBAL local_infile = 1;'
+        sql = 'SET GLOBAL local_infile = true;'
+        # sql = 'SET sql_mode = "";'
         s = self.connectionSroki.execute(sql) 
         return s       
 
-    def load_local(self, val, tablename):
+    # def load_local(self, val, tablename):
+    def load_local(self):
         # sql ='SET GLOBAL local_infile = 1;'
         # s = self.connectionSroki.execute(sql)
         self.load_global()
-        sql ='LOAD DATA LOCAL INFILE "'+ val.replace('\\', '/')+'" REPLACE INTO TABLE '+ tablename +'  CHARACTER SET utf8 FIELDS TERMINATED BY ";"  ENCLOSED BY """" LINES TERMINATED BY "\r\n" ;'
+        # sql ='LOAD DATA LOCAL INFILE "'+ val.replace('\\', '/')+'" REPLACE INTO TABLE '+ tablename +'  CHARACTER SET utf8 FIELDS TERMINATED BY ";"  ENCLOSED BY """" LINES TERMINATED BY "\r\n" ;'
+        sql ='LOAD DATA LOCAL INFILE "new_file_.csv" REPLACE INTO TABLE a_all_data_106  CHARACTER SET utf8 FIELDS TERMINATED BY ";"  ENCLOSED BY """" LINES TERMINATED BY "\r\n" ;'
+        # s = session.add(sql)
+        # print(session.new)
+        # session.commit()
         s = self.connectionSroki.execute(sql)
+        self.connectionSroki.commit()
         return s
