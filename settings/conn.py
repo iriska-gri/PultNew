@@ -1,11 +1,12 @@
 import mysql.connector
 from mysql.connector import Error
-
+# import pymssql
 import getpass # Определить пользователя
 import datetime
 import pandas
 import numpy as np
 import pandas as pd
+# import sqlalchemy as db
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 import getpass # Определить пользователя
@@ -34,8 +35,9 @@ class Orm():
             self.myBDokved = "OKVED"
 
         self.connectionOKVED = self.connect(*self.set_connect, self.myBDokved)
-        
         self.connectionSroki = self.connect(*self.set_connect, self.myBD)
+
+        self.sessionSroki = Session(bind=self.connectionSroki)
 
 # #---------------------------------------------------------------------------------------------------------
     # def connect(self, host_names, user_name, user_password, db_name):
@@ -44,12 +46,16 @@ class Orm():
         connection = None
         try:
             connection = create_engine(f"""mysql+mysqlconnector://{user_name}:%s@{host_names}/{db_name}""" % urlquote(user_password))
-            session = Session(bind=connection)
             print("Connection to MySQL DB successful")
         except Error as e:
             print(f"--------------------ОШИБКА---------------- '{e}' ")
-        return session
+        return connection
 
+    def cursors(self, sqll):
+        connection = self.connectionSroki.raw_connection()
+        cursor = connection.cursor()
+        cursor.execute(sqll)
+        return cursor.fetchall()
     # def connclose(self):
     #     self.conections.close()
     #     print("Соединение закрыто")
@@ -69,27 +75,50 @@ class Orm():
         s = f"""SELECT DISTINCT {rows} FROM {table} WHERE {uslovie} {dan} '{data}'"""
         return s
 
-    def Selected(self, rows, table):
+    # def Selected(self, rows, table):
+    def Selected(self, rows, table): 
+        # connection = self.connectionSroki.raw_connection()
+        # cursor = connection.cursor()
         s = f"""SELECT DISTINCT {rows} FROM {table}"""
         return s
+        # cursor.execute(sql)
+        
+        # self.cursors(f"""SELECT DISTINCT * FROM d_spy_mini""")
+        
+        # self.connectionSroki.close()
+        
+        # names = [row[0] for row in s]
+        # print names
+        # s = pd.read_sql(sql, con = self.connectionSroki)
+        # s = self.connectionSroki.execute(sql)
+        # self.connectionSroki.commit()
+        # s = 'hello' 
+        # ql = f"""SELECT DISTINCT * FROM d_spy_mini""" 
+        # s = self.connectionSroki.query(a).all()
+        
+        # sql = f"""SELECT DISTINCT {rows} FROM {table}"""
+        # sql = f"""SELECT DISTINCT * FROM d_spy_mini"""
+        # s = pd.read_sql_query(sql, self.connectionSroki)
+        # s = self.connectionSroki.execute(sql)
+        # return cursor.fetchall()
 
     def load_global(self):
         # sql ='SET GLOBAL local_infile = 1;'
         sql = 'SET GLOBAL local_infile = true;'
         # sql = 'SET sql_mode = "";'
-        s = self.connectionSroki.execute(sql) 
+        s = self.sessionSroki.execute(sql) 
         return s       
 
-    # def load_local(self, val, tablename):
-    def load_local(self):
+    def load_local(self, val, tablename):
+    # def load_local(self):
         # sql ='SET GLOBAL local_infile = 1;'
         # s = self.connectionSroki.execute(sql)
         self.load_global()
-        # sql ='LOAD DATA LOCAL INFILE "'+ val.replace('\\', '/')+'" REPLACE INTO TABLE '+ tablename +'  CHARACTER SET utf8 FIELDS TERMINATED BY ";"  ENCLOSED BY """" LINES TERMINATED BY "\r\n" ;'
-        sql ='LOAD DATA LOCAL INFILE "new_file_.csv" REPLACE INTO TABLE a_all_data_106  CHARACTER SET utf8 FIELDS TERMINATED BY ";"  ENCLOSED BY """" LINES TERMINATED BY "\r\n" ;'
+        sql ='LOAD DATA LOCAL INFILE "'+ val.replace('\\', '/')+'" REPLACE INTO TABLE '+ tablename +'  CHARACTER SET utf8 FIELDS TERMINATED BY ";"  ENCLOSED BY """" LINES TERMINATED BY "\r\n" ;'
+        # sql ='LOAD DATA LOCAL INFILE "new_file_.csv" REPLACE INTO TABLE a_all_data_106  CHARACTER SET utf8 FIELDS TERMINATED BY ";"  ENCLOSED BY """" LINES TERMINATED BY "\r\n" ;'
         # s = session.add(sql)
         # print(session.new)
         # session.commit()
-        s = self.connectionSroki.execute(sql)
-        self.connectionSroki.commit()
+        s = self.sessionSroki.execute(sql)
+        self.sessionSroki.commit()
         return s
