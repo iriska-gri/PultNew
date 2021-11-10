@@ -44,17 +44,17 @@ class load106(Orm):
                     data.decode(x)
                     return x
                 except:
-                    print('Ошибка')
+                    print('Ошибка определения кодировки')
                     continue
             f.close()
             return ''
         except Exception:
             return 'cp1251'
 
-    # # def opencsv(self, name):
-    def opencsv(self):
-        name='C:/Users/systemsupport/Desktop/report106_1000005103_20211005_081401.csv'
-        
+    def opencsv(self, names):
+    # def opencsv(self):
+    #     name='C:/Users/systemsupport/Desktop/report106_1000005103_20211005_081401.csv'
+        name = names
         whatcode = self.encode_Control(name)
         myrows = {0 : ('history_id', ''),
                   1 : ('actions', 'id_actions', 'id_actions, actions', 'sprav_actions'),
@@ -121,12 +121,12 @@ class load106(Orm):
             self.chunk.insert(loc=0, column='status_task', value = 3)
             gg +=1
             print(gg)
+            # self.chunk = self.chunk.astype(str)
+            # self.chunk = self.chunk.fillna('NULL')
             self.chunk = self.chunk.drop_duplicates()
             # ------------------------------------------------------------------------------------------- Заливка файла в базу
-            self.chunk.to_csv(filestr, sep=';', quoting = 1, mode='a', header=False, index=False)
+            self.chunk.to_csv(filestr, sep=';', na_rep=r'\N', quoting = 1, mode='a', header=False, index=False)
             orm.load_local(filestr, self.inTable)
-        # orm.load_local()
-
             Path(filestr).unlink()
             # 
             
@@ -146,7 +146,6 @@ class load106(Orm):
         dfspravka = orm.mySQL(orm.Selected(spravRows, spravTable), self.myBD)
         
         # dfspravka = orm.Selected(spravRows, spravTable)
-        print(dfspravka)
         self.chunk = self.chunk.merge(dfspravka, left_on=chunrows, right_on=sprav, how='left')
         self.chunk[chunrows] = self.chunk[spravId]
         del self.chunk[spravId]
