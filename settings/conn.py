@@ -46,7 +46,7 @@ class Orm():
         connection = None
         try:
             connection = create_engine(f"""mysql+mysqlconnector://{user_name}:%s@{host_names}/{db_name}""" % urlquote(user_password))
-            print("Connection to MySQL DB successful")
+            # print("Connection to MySQL DB successful")
         except Error as e:
             print(f"--------------------ОШИБКА---------------- '{e}' ")
         return connection
@@ -110,15 +110,14 @@ class Orm():
         return s       
 
     def load_local(self, val, tablename):
-    # def load_local(self):
-        # sql ='SET GLOBAL local_infile = 1;'
-        # s = self.connectionSroki.execute(sql)
         self.load_global()
         sql ='LOAD DATA LOCAL INFILE "'+ val.replace('\\', '/')+'" REPLACE INTO TABLE '+ tablename +'  CHARACTER SET utf8 FIELDS TERMINATED BY ";"  ENCLOSED BY """" LINES TERMINATED BY "\r\n" ;'
-        # sql ='LOAD DATA LOCAL INFILE "new_file_.csv" REPLACE INTO TABLE a_all_data_106  CHARACTER SET utf8 FIELDS TERMINATED BY ";"  ENCLOSED BY """" LINES TERMINATED BY "\r\n" ;'
-        # s = session.add(sql)
-        # print(session.new)
-        # session.commit()
+        s = self.sessionSroki.execute(sql)
+        self.sessionSroki.commit()
+        return s
+
+    def loadSlovar(self, tablename, rowsname, arr1):
+        sql = f'''INSERT INTO {tablename} ({rowsname}) SELECT "{arr1}"'''
         s = self.sessionSroki.execute(sql)
         self.sessionSroki.commit()
         return s
