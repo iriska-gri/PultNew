@@ -33,6 +33,7 @@ class Orm():
         else:
             self.set_connect = ("10.252.44.38", "root", "P@ssw0rd")
             self.myBDokved = "OKVED"
+            self.myBD = "Sroki_svod"
 
         self.connectionOKVED = self.connect(*self.set_connect, self.myBDokved)
         self.connectionSroki = self.connect(*self.set_connect, self.myBD)
@@ -80,6 +81,12 @@ class Orm():
         # connection = self.connectionSroki.raw_connection()
         # cursor = connection.cursor()
         s = f"""SELECT DISTINCT {rows} FROM {table}"""
+        return s
+
+    def SelecteAll(self, rows, table): 
+        # connection = self.connectionSroki.raw_connection()
+        # cursor = connection.cursor()
+        s = f"""SELECT {rows} FROM {table}"""
         return s
         # cursor.execute(sql)
         

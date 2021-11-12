@@ -137,14 +137,15 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow, OKVEDload):
     def showDialog1(self): # Открыть окно выбора файла
         pathhome = Path.home()
         # name = QtWidgets.QFileDialog.getOpenFileNames(None, 'Выбор файла', str(pathhome.joinpath('Desktop')),)
-        # self.nameDialogs = QtWidgets.QFileDialog.getOpenFileNames(None, 'Выбор файла', str(pathhome.joinpath('Desktop')),)
+        self.nameDialogs = QtWidgets.QFileDialog.getOpenFileNames(None, 'Выбор файла', str(pathhome.joinpath('Desktop')),)
         # f = r'C:/Users/systemsupport/Desktop/report106_1000005103_20211005_081401.csv'
         # print(f"""'{str(self.nameDialogs[0][0])}'""")
         # print()
         # print(self.nameDialogs[0][0])
-
+        l106.opencsv(self.nameDialogs[0][0])
+        # self.on_finished()
         # print(self.nameDialogs[0])
-        l106.opencsv('C:/Users/systemsupport/Desktop/report106_1000005363_20211110_080414.csv')
+        # l106.opencsv('C:/Users/systemsupport/Desktop/report106_1000005363_20211110_080414.csv')
         # print(str(self.nameDialogs[0][0]))
         # print(self.nameDialogs[0])
 

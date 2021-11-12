@@ -29,7 +29,7 @@ class load106(Orm):
             self.spravSNTS = 'sprav_snts_svod'
         else:
             self.myBD = "Sroki_svod"
-            self.inTable = 'a_all_data_106_copy'
+            self.inTable = 'a_all_data_106'
             self.spravSNTS = 'sprav_SNTS_svod'
         
     def encode_Control(self,filename):
@@ -49,10 +49,10 @@ class load106(Orm):
         except Exception:
             return 'cp1251'
 
-    # def opencsv(self, names):
-    def opencsv(self):
-        name='C:/Users/systemsupport/Desktop/report106_1000005363_20211110_080414.csv'
-        # name = names
+    def opencsv(self, names):
+    # def opencsv(self):
+        # name='C:/Users/systemsupport/Desktop/report106_1000005384_20211112_080920.csv'
+        name = names
         whatcode = self.encode_Control(name)
         myrows = {0 : ('history_id', ''),
                   1 : ('actions', 'id_actions', 'id_actions, actions', 'sprav_actions'),
@@ -76,9 +76,15 @@ class load106(Orm):
         datarows = [9, 10, 27, 16, 18] # Все столбцы с датами
         spravrows = [1, 3, 8, 15, 22, 26] #Все столбцы для замены со справочником
         simvol = [3, 22] # Замена "" символа
+
+        file = open(name)
+        numline = len(file.readlines())
+        kolvoline = round(numline/10000)
+        # print(kolvoline)
         gg = 0
         filestr = str(Path(name).parent.joinpath("new_file_.csv")) # Сохранить каждый чанк в файл
         for chunk in pd.read_csv(name, sep=';', header=None, dtype=str, chunksize=10000, engine='python', encoding = whatcode):
+        # for chunk in pd.read_csv(name, sep=';', header=None, dtype=str, chunksize=10000, engine='python', encoding='utf-8'):
             # while gg < 1:
             self.chunk = chunk.drop(columns=[2,7,11,12,13,14,17,19,20,25])
             
@@ -111,7 +117,7 @@ class load106(Orm):
                 self.chunk[y].unique() #Выбираем уникальные значения стобца
                 csvunik = self.chunk[y].unique()
                 spravunik = []
-                spradf = orm.mySQL(orm.Selected(myrows[y][0], myrows[y][3]), self.myBD) #Выбираем уникальные значения из справочника
+                spradf = orm.mySQL(orm.SelecteAll(myrows[y][0], myrows[y][3]), self.myBD) #Выбираем уникальные значения из справочника
                 for x in range(len(spradf)): #Добавляем уникальные значения справочника
                     spravunik.append(spradf[myrows[y][0]][x])
                 newslovo = []
@@ -124,18 +130,15 @@ class load106(Orm):
                         pass
                     else:
                         newslovo.append(csvunik[x])
-                self.chunk[3] = self.chunk[3].str.replace('Сведения НО соответствуют данным РО', "сведения НО соответствуют данным РО")
+                # self.chunk[3] = self.chunk[3].str.replace('Сведения НО соответствуют данным РО', "сведения НО соответствуют данным РО")
                 for x in simvol:
-                    # self.chunk[x] = self.chunk[x].replace()
-                    # self.zamenakov(x, '«')
-                    # self.simvolZamena(x, '»')
-                    # self.simvolZamena(x, '«')
+
                     self.chunk[x] = self.chunk[x].str.replace('»', "'") 
                     self.chunk[x] = self.chunk[x].str.replace('«', "'")  
                 for x in range(len(newslovo)):
                     if newslovo[x] != '':
                         orm.loadSlovar(myrows[y][3], myrows[y][0], newslovo[x])
-                        print("Добавлено новое значение: Таблица {}; Слово {}".format(myrows[y][3], newslovo[x]))
+                        print("Добавлено новое значение: Таблица - {}; Слово - {}".format(myrows[y][3], newslovo[x]))
             # -----------------------------------------------------------------------------------------------------------------------------
             for x in datarows:
                 self.simvolZamena(x, '+')
@@ -159,7 +162,8 @@ class load106(Orm):
             orm.load_local(filestr, self.inTable)
             Path(filestr).unlink()
             gg +=1
-            print(gg)
+            print("Загружено: {} из {}".format(gg, kolvoline))
+        print("Загрузка 106 завершена")
                 
     def spravkaZamena(self, spravRows, spravTable, spravId, chunrows, sprav):
         dfspravka = orm.mySQL(orm.Selected(spravRows, spravTable), self.myBD)
@@ -176,10 +180,14 @@ class load106(Orm):
         
 
     def formatdataZamena(self, numb):
+        # dataexcel =  pd.to_datetime(ss.columns[0]).date()
+        # datastr = str(dataexcel)
+        # datasplit = datastr.split('-')
+        # databse = datasplit[0] + '-' + datasplit[2] + '-' + datasplit[1]
         if numb == 27:
-            self.chunk[numb] = pd.to_datetime(self.chunk[numb]).dt.date
+            self.chunk[numb] = pd.to_datetime(self.chunk[numb], dayfirst=True).dt.date
         else:
-            self.chunk[numb] = pd.to_datetime(self.chunk[numb])
+            self.chunk[numb] = pd.to_datetime(self.chunk[numb], dayfirst=True)
     
     def probeliZamena(self, numb):
         self.chunk[numb] = self.chunk[numb].str.strip() # Удаляем все пробелы в столбце
