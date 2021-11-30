@@ -46,7 +46,11 @@ class load107():
     #     print(nb_row)
 ##- ----------------------------------------------------------------------------------------------------------------------------
     def opencsv(self):
-        orm.DeleteWhere()
+        # a = orm.Sql()
+        # print(a[0][0])
+        spradf = orm.SQL(orm.SelectWhere('cod_SNTS', 'sprav_snts_svod', 'vid_object', '=', 'Автобусы'))
+        print(spradf[0][0])
+
         # orm.DeleteWhere("viruzka_np.datelikedale >= '2021-10-04' AND viruzka_np.datelikedale <= '2021-10-04'")
         # orm.DeleteWhere('viruzka_np', 'viruzka_np.datelikedale', '2021-10-04', 'viruzka_np.datelikedale', '2021-10-04')
         # orm.mySQL(orm.Ses(), "okved")

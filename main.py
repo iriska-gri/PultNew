@@ -7,18 +7,16 @@ from completed import Ui_finished as finished
 from pathlib import Path
 from OKVEDsait import OKVEDload
 from OKVEDmanual import OKVEDmanual
-from OKVEDmanualstroki import OKVEDmanualsrt
 from load106 import load106
-from proba import load107
+# from probaa import load106
 from settings.conn import Orm
 import time
 
 orm = Orm()
-okvedstr = OKVEDmanualsrt()
 okvedm = OKVEDmanual()
 okvedl = OKVEDload()
 l106 = load106()
-proba = load107()
+# proba = load107()
 
 
 
@@ -27,39 +25,26 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow, OKVEDload):
     def __init__(self, **kwargs):
         super(ExampleApp, self).__init__(**kwargs)
         OKVEDload.__init__(self, **kwargs)
+        
         self.setupUi(self)  # Это нужно для инициализации нашего дизайна
         self.OKVED.clicked.connect(self.on_radio_button_clicked)
-        self.load106.clicked.connect(self.showDialog1)
-        # self.dateEnd.setReadOnly(True)
-        # self.dateStart.setReadOnly(True)
-        self.checkStroki.toggled.connect(self.on_radio_Stroki) # Активация окна ввода строк вручную
+        self.load106.clicked.connect(self.showDialog)
+        self.checkManual.toggled.connect(self.on_radio_zagruzka)
         self.chekUpdate.toggled.connect(self.on_radio_Data)
-        self.pushButton.clicked.connect(self.delete)
-
-
-
-
 
         if self.usering == 'systemsupport':
             self.tablemsp = 'viruzka_msp'
             self.tablenp = 'viruzka_np'
             self.myBD = "okved"
+            self.myBDsr = "Sroki_svod"
         else:
             self.tablemsp = 'Viruzka_MSP'
             self.tablenp = 'Viruzka_NP'
             self.myBD = "OKVED"
+            self.myBDsr = "Sroki_svod"
 
 
 # ------------------------------------------------------------------------------------------------------- ОКВЭД
-
-    def on_radio_Stroki(self): # Выбирает цвет для ввода данных
-        if self.checkStroki.isChecked(): 
-            self.textEdit.setReadOnly(False)
-            self.textEdit.setStyleSheet("background-color: rgb(255, 255, 255)")
-        else:
-            self.textEdit.setReadOnly(True)
-            self.textEdit.setStyleSheet("background-color: rgb(229, 229, 229)")
-            
 
     def on_radio_Data(self): # Выбор обновления дат данных ОКВЭД
         if self.chekUpdate.isChecked(): 
@@ -67,50 +52,35 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow, OKVEDload):
             self.dateStart.setReadOnly(False)
             self.dateEnd.setStyleSheet("background-color: rgb(255, 255, 255)")
             self.dateStart.setStyleSheet("background-color: rgb(255, 255, 255)")
-            self.checkStroki.setEnabled(False)
             self.checkManual.setEnabled(False)
         else:
             self.dateEnd.setReadOnly(True)
             self.dateStart.setReadOnly(True)
             self.dateEnd.setStyleSheet("background-color: rgb(229, 229, 229)")
             self.dateStart.setStyleSheet("background-color: rgb(229, 229, 229)")
-            self.checkStroki.setEnabled(True)
             self.checkManual.setEnabled(True)
 
-    def delete(self):
-        if (self.chekUpdate.isChecked()):
-            self.OKVEDupdate()
+    def on_radio_zagruzka(self):
+        if self.checkManual.isChecked(): 
+            self.chekUpdate.setEnabled(False)
+        else:
+            self.chekUpdate.setEnabled(True)
 
     def on_radio_button_clicked(self): # Выбирает загрузку ОКВЭД вручную или с сайта
-        # if (self.chekUpdate.isChecked()):
-        #     self.OKVEDsait()
-        if (self.checkManual.isChecked() and self.checkStroki.isChecked()):
-            self.OKVEDmanualstroki() 
-        elif self.checkManual.isChecked():   
+        if self.checkManual.isChecked():   
             self.OKVEDmanual()
         else:
             self.OKVEDsait()
-
-
-            
+           
 
     def OKVEDsait(self):
         okvedl.loadInSite()
         self.on_finished()
 
     def OKVEDmanual(self): # Событие загрузки файлов ОКВЭД с автоматическим вводом строк
-        self.showDialog1()
+        self.showDialog()
         for x in range(len(self.nameDialogs[0])):
-            # print(self.nameDialogs[0][x])
             okvedm.loadSite(str(self.nameDialogs[0][x]))
-        self.on_finished()
-
-    def OKVEDmanualstroki(self): # Событие загрузки файлов ОКВЭД с ручныым вводом строк
-        text = self.textEdit.toPlainText() 
-        self.showDialog1()
-        for x in range(len(self.nameDialogs[0])):
-            # print(self.nameDialogs[0][x])
-            okvedstr.loadSite(str(self.nameDialogs[0][x]), int(text)-1)
         self.on_finished()
     
     def OKVEDupdate(self):
@@ -125,41 +95,18 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow, OKVEDload):
             var_End = temp_varEnd.toPyDate()
         table = [self.tablemsp, self.tablenp]
         for x in table:
-            orm.DeleteWhere(x, 'datelikedale', var_nameStart, var_End)
-        # orm.connclose()
+            orm.SQLOkved(orm.DeleteWhere(x, 'datelikedale', var_nameStart, var_End))
         print("Обновляемый период с {} по {}".format(var_nameStart, var_End))
-        
-
-       
 
 # ------------------------------------------------------------------------------------------------------- Техническая часть
 
-    def showDialog1(self): # Открыть окно выбора файла
-        pathhome = Path.home()
-        # name = QtWidgets.QFileDialog.getOpenFileNames(None, 'Выбор файла', str(pathhome.joinpath('Desktop')),)
-        self.nameDialogs = QtWidgets.QFileDialog.getOpenFileNames(None, 'Выбор файла', str(pathhome.joinpath('Desktop')),)
-        # f = r'C:/Users/systemsupport/Desktop/report106_1000005103_20211005_081401.csv'
-        # print(f"""'{str(self.nameDialogs[0][0])}'""")
-        # print()
-        # print(self.nameDialogs[0][0])
-        l106.opencsv(self.nameDialogs[0][0])
-        # self.on_finished()
-        # print(self.nameDialogs[0])
-        # l106.opencsv('C:/Users/systemsupport/Desktop/report106_1000005363_20211110_080414.csv')
-        # print(str(self.nameDialogs[0][0]))
-        # print(self.nameDialogs[0])
-
-
-
-
-
     def showDialog(self): # Открыть окно выбора файла
         pathhome = Path.home()
-        self.nameDialog = QtWidgets.QFileDialog.getExistingDirectory(self, "Выберите папку")
-        # print(self.nameDialog)
-        # l106.opencsv()
-        # self.on_finished()
-        # proba.opencsv()
+        self.nameDialogs = QtWidgets.QFileDialog.getOpenFileNames(None, 'Выбор файла', str(pathhome.joinpath('Desktop')),) #QtWidgets.QFileDialog.getExistingDirectory(self, "Выберите папку")
+        if self.sender().objectName() == 'load106':
+            l106.opencsv(self.nameDialogs[0][0])
+        else:
+            pass
 
     def on_finished(self): # Завершение дествия
         dialog = QtWidgets.QDialog()

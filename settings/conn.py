@@ -1,9 +1,9 @@
-import mysql.connector
+# import mysql.connector
 from mysql.connector import Error
 # import pymssql
 import getpass # Определить пользователя
-import datetime
-import pandas
+# import datetime
+# import pandas
 import numpy as np
 import pandas as pd
 # import sqlalchemy as db
@@ -11,10 +11,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 import getpass # Определить пользователя
 from mysql.connector.locales.eng import client_error
-# from urllib import quote_plus as urlquote
-import urllib.parse
+# from main import ExampleApp
+# import urllib.parse
 from urllib.parse import quote as urlquote
 
+# ex = ExampleApp()
 # session = Session()
 
 #--------------------------------------------------------------------------------------------------------- Подключение
@@ -23,7 +24,6 @@ class Orm():
     Возвращает созданный список """
     def __init__(self, **kwargs):
         super(Orm, self).__init__(**kwargs)
-
         self.usering = getpass.getuser()
         
         if self.usering == 'systemsupport':
@@ -35,96 +35,92 @@ class Orm():
             self.myBDokved = "OKVED"
             self.myBD = "Sroki_svod"
 
-        self.connectionOKVED = self.connect(*self.set_connect, self.myBDokved)
-        self.connectionSroki = self.connect(*self.set_connect, self.myBD)
+        self.sessionSroki = self.session(self.myBD)
+        self.sessionOKVED = self.session(self.myBDokved)
 
-        self.sessionSroki = Session(bind=self.connectionSroki)
+    def session(self, bd):
+        connection = self.connect(*self.set_connect, bd)
+        session = Session(bind=connection)
+        return session
 
 # #---------------------------------------------------------------------------------------------------------
-    # def connect(self, host_names, user_name, user_password, db_name):
     def connect(self, host_names, user_name, user_password, db_name):
         """Создается подключение к серверу"""
         connection = None
         try:
             connection = create_engine(f"""mysql+mysqlconnector://{user_name}:%s@{host_names}/{db_name}""" % urlquote(user_password))
-            # print("Connection to MySQL DB successful")
+            print("Connection to MySQL DB successful")
         except Error as e:
             print(f"--------------------ОШИБКА---------------- '{e}' ")
         return connection
 
-    def cursors(self, sqll):
-        connection = self.connectionSroki.raw_connection()
-        cursor = connection.cursor()
-        cursor.execute(sqll)
-        return cursor.fetchall()
+    # def cursors(self, sqll):
+    #     connection = self.connectionSroki.raw_connection()
+    #     cursor = connection.cursor()
+    #     cursor.execute(sqll)
+    #     return cursor.fetchall()
+
     # def connclose(self):
     #     self.conections.close()
     #     print("Соединение закрыто")
-    
-    def DeleteWhere(self, table, t, data1, data2):
-    # def DeleteWhere(self, table, t):
-        # sql = f"""DELETE FROM {table} WHERE {t} >= {data1} AND {t} <= {data2}"""
-        sql = f"""DELETE FROM {table} WHERE {t} >= '{data1}' AND {t} <= '{data2}'"""
-        s = self.connectionOKVED.execute(sql)
-        return s
-        
-    def mySQL(self, zapros, nameTable):
-        sql = pd.read_sql(zapros, con = self.connect(*self.set_connect, nameTable))
-        return sql
-    
-    def SelectWhere(self, rows, table, uslovie, dan, data):
-        s = f"""SELECT DISTINCT {rows} FROM {table} WHERE {uslovie} {dan} '{data}'"""
-        return s
+# ------------------------------------------------------------------------------------------------------------------------ Сессия Sroki_svod 
+    def SQLallSS(self, newSQL):
+        sql = newSQL
+        result = self.sessionSroki.execute(sql).all()
+        return result
 
-    # def Selected(self, rows, table):
+    def mySQLSS(self, newSQL):
+        sql = pd.read_sql(newSQL, self.sessionSroki.bind)
+        return sql
+
+    def SQLSS(self, newSQL):
+        sql = newSQL
+        result = self.sessionSroki.execute(sql)
+        self.sessionSroki.commit()
+        return result  
+
+    def commitSS(self, newSQL):
+        sql = newSQL
+        result = self.sessionSroki.execute(sql)
+        self.sessionSroki.commit()
+        return result
+# ------------------------------------------------------------------------------------------------------------------------ Сессия OKVED 
+    def SQLOkved(self, newSQL):
+        sql = newSQL
+        result = self.sessionOKVED.execute(sql)
+        # self.sessionOKVED.commit()
+        return result
+
+    def commitOkved(self, newSQL):
+        sql = newSQL
+        result = self.sessionOKVED.execute(sql)
+        self.sessionOKVED.commit()
+        return result
+# ------------------------------------------------------------------------------------------------------------------------ Запросы    
+    def DeleteWhere(self, table, t, data1, data2):
+        sql = f"""DELETE FROM {table} WHERE {t} >= '{data1}' AND {t} <= '{data2}'"""
+        return sql
+
+    def SelectWhere(self, rows, table, uslovie, dan, data):
+        sql = f"""SELECT DISTINCT {rows} FROM {table} WHERE {uslovie} {dan} '{data}'"""
+        return sql
+
     def Selected(self, rows, table): 
-        # connection = self.connectionSroki.raw_connection()
-        # cursor = connection.cursor()
-        s = f"""SELECT DISTINCT {rows} FROM {table}"""
-        return s
+        sql = f"""SELECT DISTINCT {rows} FROM {table}"""
+        return sql
 
     def SelecteAll(self, rows, table): 
-        # connection = self.connectionSroki.raw_connection()
-        # cursor = connection.cursor()
-        s = f"""SELECT {rows} FROM {table}"""
-        return s
-        # cursor.execute(sql)
-        
-        # self.cursors(f"""SELECT DISTINCT * FROM d_spy_mini""")
-        
-        # self.connectionSroki.close()
-        
-        # names = [row[0] for row in s]
-        # print names
-        # s = pd.read_sql(sql, con = self.connectionSroki)
-        # s = self.connectionSroki.execute(sql)
-        # self.connectionSroki.commit()
-        # s = 'hello' 
-        # ql = f"""SELECT DISTINCT * FROM d_spy_mini""" 
-        # s = self.connectionSroki.query(a).all()
-        
-        # sql = f"""SELECT DISTINCT {rows} FROM {table}"""
-        # sql = f"""SELECT DISTINCT * FROM d_spy_mini"""
-        # s = pd.read_sql_query(sql, self.connectionSroki)
-        # s = self.connectionSroki.execute(sql)
-        # return cursor.fetchall()
+        sql = f"""SELECT {rows} FROM {table}"""
+        return sql
 
     def load_global(self):
-        # sql ='SET GLOBAL local_infile = 1;'
         sql = 'SET GLOBAL local_infile = true;'
-        # sql = 'SET sql_mode = "";'
-        s = self.sessionSroki.execute(sql) 
-        return s       
+        return sql      
 
     def load_local(self, val, tablename):
-        self.load_global()
         sql ='LOAD DATA LOCAL INFILE "'+ val.replace('\\', '/')+'" REPLACE INTO TABLE '+ tablename +'  CHARACTER SET utf8 FIELDS TERMINATED BY ";"  ENCLOSED BY """" LINES TERMINATED BY "\r\n" ;'
-        s = self.sessionSroki.execute(sql)
-        self.sessionSroki.commit()
-        return s
+        return sql
 
     def loadSlovar(self, tablename, rowsname, arr1):
         sql = f'''INSERT INTO {tablename} ({rowsname}) SELECT "{arr1}"'''
-        s = self.sessionSroki.execute(sql)
-        self.sessionSroki.commit()
-        return s
+        return sql

@@ -9,6 +9,7 @@ from io import BytesIO
 import requests
 import base64
 from datetime import datetime, timedelta
+
 import time
 from OKVEDsait import OKVEDload
 import datetime
@@ -24,7 +25,7 @@ class OKVEDmanualsrt(OKVEDload):
     def loadSite(self, name, nom):
         self.toread = name
         ss = pd.read_excel(self.toread, sheet_name='Выручка', skiprows=1, nrows=0, usecols = 'B')
-        dataexcel =  pd.to_datetime(ss.columns[0]).date()
+        dataexcel =  pd.to_datetime(ss.columns[0]).date(dayfirst=True)
         datastr = str(dataexcel)
         datasplit = datastr.split('-')
         databse = datasplit[0] + '-' + datasplit[2] + '-' + datasplit[1]
