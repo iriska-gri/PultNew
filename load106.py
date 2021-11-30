@@ -13,26 +13,25 @@ import base64
 from datetime import datetime, timedelta
 import time
 from pathlib import Path
+from VScomp import VScomp
 
 
-orm = Orm()
+
+
+vs = VScomp()
 
 pd.options.display.float_format ='{:,.0f}'.format
 
 
-class load106(Orm):
-    def __init__(self, **kwargs):
-        super(load106, self).__init__(**kwargs)
-        if self.usering == 'systemsupport':
-            self.myBD = "sroki_svod"
-            self.inTablek = 'a_all_data_106_k'
-            self.inTable = 'a_all_data_106'
-            self.spravSNTS = 'sprav_snts_svod'
-        else:
-            self.myBD = "Sroki_svod"
-            self.inTable = 'a_all_data_106'
-            self.spravSNTS = 'sprav_SNTS_svod'
-        
+class load106():
+  
+
+    def __init__(self, bd):
+        VScomp.__init__(self)
+
+        self.orm = Orm(bd)
+    
+
     def encode_Control(self,filename):
         try:
             f = open(filename, 'rb')
@@ -54,8 +53,6 @@ class load106(Orm):
             return 'cp1251'
 
     def opencsv(self, names):
-    # def opencsv(self):
-        # name='C:/Users/systemsupport/Desktop/report106_1000005426_20211115_105742.csv'
         name = names
         whatcode = self.encode_Control(name)
         razmer = os.path.getsize(name)
@@ -82,18 +79,16 @@ class load106(Orm):
         spravrows = [1, 3, 8, 15, 22, 26] #Все столбцы для замены со справочником
         simvol = [3, 22] # Замена "" символа
         if razmer < 600000000:
-            print('Маленький файл')
             file = open(name)
             numline = len(file.readlines())
+            print("Маленький файл, строк: {}".format(numline))
             kolvoline = round(numline/10000)
         else:
-            print("Размер файла: {}".format(razmer))
-            kolvoline = 'Большой файл'
+            print("Большой файл, размер: {}".format(razmer))
         gg = 0
         filestr = str(Path(name).parent.joinpath("new_file_.csv")) # Сохранить каждый чанк в файл
         print('Пошла загрузка')
         for chunk in pd.read_csv(name, sep=';', header=None, dtype=str, chunksize=10000, engine='python', encoding = whatcode):
-            # while gg < 1:
             self.chunk = chunk.drop(columns=[2,7,11,12,13,14,17,19,20,25])
         
             self.probeliZamena(3)
@@ -122,22 +117,19 @@ class load106(Orm):
             naZamenu = []
             for b in stringZamena:
                 try:
-                    a = orm.SQLallSS(orm.SelectWhere('cod_SNTS', self.spravSNTS, 'vid_object', '=', b))
+                    a = self.orm.SQLall(self.orm.SelectWhere('cod_SNTS', self.spravSNTS, 'vid_object', '=', b))
                     naZamenu.append(a[0][0])
                 except Exception:
                     continue
-            
             for x in range(len(stringZamena)):
                 self.chunk[23] = self.chunk[23].replace(to_replace = stringZamena[x], value = naZamenu[x])
                 self.chunk[23] = self.chunk[23].astype(str)
-            
             # ----------------------------------------------------------------------------------------------------------------------------- Проверка наличия данных в словаре
             for y in spravrows:
                 self.chunk[y].unique() #Выбираем уникальные значения стобца
                 csvunik = self.chunk[y].unique()
                 spravunik = []
-                # print(myrows[y][0], myrows[y][3])
-                spradf = orm.SQLallSS(orm.Selected(myrows[y][0], myrows[y][3])) #Выбираем уникальные значения из справочника
+                spradf = self.orm.SQLall(self.orm.Selected(myrows[y][0], myrows[y][3])) #Выбираем уникальные значения из справочника
                 for x in range(len(spradf)): #Добавляем уникальные значения справочника
                     spravunik.append(spradf[x][0])
                 newslovo = []
@@ -148,7 +140,7 @@ class load106(Orm):
                         newslovo.append(csvunik[x])
                 for x in range(len(newslovo)):
                     if newslovo[x] != '':
-                        orm.commitSS(orm.loadSlovar(myrows[y][3], myrows[y][0], newslovo[x]))
+                        self.orm.commit(self.orm.loadSlovar(myrows[y][3], myrows[y][0], newslovo[x]))
                         if y != 8:
                             print("Добавлено новое значение: Таблица - {}; Слово - {}".format(myrows[y][3], newslovo[x]))
             # -----------------------------------------------------------------------------------------------------------------------------
@@ -170,19 +162,19 @@ class load106(Orm):
             self.chunk = self.chunk.drop_duplicates()
             # ------------------------------------------------------------------------------------------- Заливка файла в базу
             self.chunk.to_csv(filestr, sep=';', na_rep=r'\N', quoting = 1, mode='a', header=False, index=False)
-            self.SQLSS(self.load_global())
-            orm.commitSS(orm.load_local(filestr, self.inTable))
+            self.orm.commit(self.orm.load_global())
+            self.orm.commit(self.orm.load_local(filestr, self.inTable))
             Path(filestr).unlink()
             gg +=1
             if razmer < 600000000:
                 print("Загружено: {} из {}".format(gg, kolvoline))
             else:
                 print("Загружено: {}".format(gg))
-        
+        self.orm.connclose()
         print("Загрузка 106 завершена")
                 
     def spravkaZamena(self, spravRows, spravTable, spravId, chunrows, sprav):
-        dfspravka = orm.mySQLSS(orm.Selected(spravRows, spravTable))
+        dfspravka = self.orm.mySQL(self.orm.Selected(spravRows, spravTable))
         self.chunk = self.chunk.merge(dfspravka, left_on=chunrows, right_on=sprav, how='left')
         self.chunk[chunrows] = self.chunk[spravId]
         del self.chunk[spravId]
@@ -200,7 +192,4 @@ class load106(Orm):
     
     def probeliZamena(self, numb):
         self.chunk[numb] = self.chunk[numb].str.strip() # Удаляем все пробелы в столбце
-
-if __name__ == '__main__':
-    load106().opencsv() 
   

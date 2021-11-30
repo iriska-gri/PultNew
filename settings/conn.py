@@ -1,7 +1,7 @@
 # import mysql.connector
 from mysql.connector import Error
 # import pymssql
-import getpass # Определить пользователя
+# import getpass # Определить пользователя
 # import datetime
 # import pandas
 import numpy as np
@@ -9,12 +9,13 @@ import pandas as pd
 # import sqlalchemy as db
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
-import getpass # Определить пользователя
 from mysql.connector.locales.eng import client_error
 # from main import ExampleApp
 # import urllib.parse
 from urllib.parse import quote as urlquote
+from VScomp import VScomp
 
+vs = VScomp()
 # ex = ExampleApp()
 # session = Session()
 
@@ -22,21 +23,13 @@ from urllib.parse import quote as urlquote
 class Orm():
     """ Создает список определенной длины, вставляя элемент в нужное место списка.
     Возвращает созданный список """
-    def __init__(self, **kwargs):
-        super(Orm, self).__init__(**kwargs)
-        self.usering = getpass.getuser()
-        
-        if self.usering == 'systemsupport':
-            self.set_connect = ("localhost", "root", "P@ssw0rd")
-            self.myBDokved = "okved"
-            self.myBD = "sroki_svod"
-        else:
-            self.set_connect = ("10.252.44.38", "root", "P@ssw0rd")
-            self.myBDokved = "OKVED"
-            self.myBD = "Sroki_svod"
+    def __init__(self, bdSession):
+        # super(Orm, self).__init__(**kwargs)
+        VScomp.__init__(self)
 
-        self.sessionSroki = self.session(self.myBD)
-        self.sessionOKVED = self.session(self.myBDokved)
+        self.mySession = self.session(bdSession)
+        # self.sessionSroki = self.session(self.myBD)
+        # self.sessionOKVED = self.session(self.myBDokved)
 
     def session(self, bd):
         connection = self.connect(*self.set_connect, bd)
@@ -60,42 +53,25 @@ class Orm():
     #     cursor.execute(sqll)
     #     return cursor.fetchall()
 
-    # def connclose(self):
-    #     self.conections.close()
-    #     print("Соединение закрыто")
-# ------------------------------------------------------------------------------------------------------------------------ Сессия Sroki_svod 
-    def SQLallSS(self, newSQL):
+    def connclose(self):
+        self.mySession.close()
+        print("Соединение закрыто")
+# ------------------------------------------------------------------------------------------------------------------------ Сессия
+    def SQLall(self, newSQL):
         sql = newSQL
-        result = self.sessionSroki.execute(sql).all()
+        result = self.mySession.execute(sql).all()
         return result
 
-    def mySQLSS(self, newSQL):
-        sql = pd.read_sql(newSQL, self.sessionSroki.bind)
+    def mySQL(self, newSQL):
+        sql = pd.read_sql(newSQL, self.mySession.bind)
         return sql
 
-    def SQLSS(self, newSQL):
+    def commit(self, newSQL):
         sql = newSQL
-        result = self.sessionSroki.execute(sql)
-        self.sessionSroki.commit()
-        return result  
-
-    def commitSS(self, newSQL):
-        sql = newSQL
-        result = self.sessionSroki.execute(sql)
-        self.sessionSroki.commit()
-        return result
-# ------------------------------------------------------------------------------------------------------------------------ Сессия OKVED 
-    def SQLOkved(self, newSQL):
-        sql = newSQL
-        result = self.sessionOKVED.execute(sql)
-        # self.sessionOKVED.commit()
+        result = self.mySession.execute(sql)
+        self.mySession.commit()
         return result
 
-    def commitOkved(self, newSQL):
-        sql = newSQL
-        result = self.sessionOKVED.execute(sql)
-        self.sessionOKVED.commit()
-        return result
 # ------------------------------------------------------------------------------------------------------------------------ Запросы    
     def DeleteWhere(self, table, t, data1, data2):
         sql = f"""DELETE FROM {table} WHERE {t} >= '{data1}' AND {t} <= '{data2}'"""
