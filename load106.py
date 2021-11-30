@@ -81,7 +81,7 @@ class load106():
         if razmer < 600000000:
             file = open(name)
             numline = len(file.readlines())
-            print("Маленький файл, строк: {}".format(numline))
+            print("Маленький файл, количество строк: {}".format(numline))
             kolvoline = round(numline/10000)
         else:
             print("Большой файл, размер: {}".format(razmer))

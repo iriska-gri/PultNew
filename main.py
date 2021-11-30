@@ -1,27 +1,14 @@
 import sys  # sys нужен для передачи argv в QApplication
 from PyQt5 import QtWidgets
-from PyQt5 import QtCore, QtGui
+# from PyQt5 import QtCore, QtGui
 import design  # Это наш конвертированный файл дизайна
-import datetime
 from completed import Ui_finished as finished
 from pathlib import Path
-from OKVEDsait import OKVEDload
 from OKVEDmanual import OKVEDmanual
 from load106 import load106
-# from probaa import load106
-from settings.conn import Orm
-import time
 from VScomp import VScomp
 
 vs = VScomp()
-# orm = Orm("okved")
-okvedm = OKVEDmanual()
-okvedl = OKVEDload()
-
-# proba = load107()
-
-
-
 
 class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
     def __init__(self, **kwargs):
@@ -60,18 +47,21 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
 
     def on_radio_button_clicked(self): # Выбирает загрузку ОКВЭД вручную или с сайта
         if self.checkManual.isChecked():   
-            self.OKVEDmanual()
+            self.OKVEDhand()
         else:
-            self.OKVEDsait()
+            # self.OKVEDsait()
+            print('В работе')
            
 
-    def OKVEDsait(self):
-        okvedl.loadInSite()
-        self.on_finished()
+    # def OKVEDsait(self):
+    #     okvedm = OKVEDmanual()
+    #     okvedm.loadSite()
+    #     self.on_finished()
 
-    def OKVEDmanual(self): # Событие загрузки файлов ОКВЭД с автоматическим вводом строк
+    def OKVEDhand(self): # Событие загрузки файлов ОКВЭД с автоматическим вводом строк
         self.showDialog()
         for x in range(len(self.nameDialogs[0])):
+            okvedm = OKVEDmanual(self.myBDokved)
             okvedm.loadSite(str(self.nameDialogs[0][x]))
         self.on_finished()
         
@@ -99,6 +89,7 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
         if self.sender().objectName() == 'load106':
             l106 = load106(self.myBD)
             l106.opencsv(self.nameDialogs[0][0])
+            self.on_finished()
         else:
             pass
 

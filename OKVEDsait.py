@@ -15,19 +15,21 @@ import datetime
 from pathlib import Path
 from VScomp import VScomp
 
-orm = Orm("okved")
+
 vs = VScomp()
 
 class OKVEDload():
 
-    def __init__(self):
+    def __init__(self, bd):
         VScomp.__init__(self)
+
+        self.orm = Orm(bd)
 
     def inTime(self):
         
         ddate = date.today() - pd.to_timedelta('365 day')
 
-        dfmindata = orm.commit(orm.SelectWhere('min(datelikedale)', self.tablemsp, 'datelikedale', '>', ddate))
+        dfmindata = self.orm.commit(self.orm.SelectWhere('min(datelikedale)', self.tablemsp, 'datelikedale', '>', ddate))
      
         se = dfmindata.values.tolist()
         sdate = se[0][0]
@@ -39,7 +41,7 @@ class OKVEDload():
             day = sdate + timedelta(days=i)
             datelist.append(day)
         
-        df = orm.commit(orm.Selected('datelikedale', self.tablemsp))
+        df = self.orm.commit(self.orm.Selected('datelikedale', self.tablemsp))
         dateinbase = []
         for x in range(len(df.to_numpy().tolist())):
             dateinbase.append(df.to_numpy().tolist()[x][0])
@@ -126,10 +128,10 @@ class OKVEDload():
         df = df.replace('-', 0)
         df.insert(loc=0, column='datelikedale', value = self.itogdate)
         df.to_csv('okved', sep=';', na_rep=r'\N', quoting = 1, mode='a', header=False, index=False)
-        orm.commit(orm.load_local('okved', inTable))
+        self.orm.commit(self.orm.load_local('okved', inTable))
         Path('okved').unlink()
         print("Загрузка прошла успешно: таблица: {} дата: {}".format(inTable, self.itogdate))
         
 
-if __name__ == '__main__':
-    OKVEDload().loadInSite() 
+# if __name__ == '__main__':
+#     OKVEDload().loadInSite() 
