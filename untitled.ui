@@ -216,6 +216,38 @@
      <string>All_bez_back</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="pushButton_Sroki_svod">
+    <property name="geometry">
+     <rect>
+      <x>180</x>
+      <y>100</y>
+      <width>81</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(200, 169, 96)</string>
+    </property>
+    <property name="text">
+     <string>Sroki_svod</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_Daschbord_Sroki_svod">
+    <property name="geometry">
+     <rect>
+      <x>270</x>
+      <y>100</y>
+      <width>141</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(85, 170, 127)</string>
+    </property>
+    <property name="text">
+     <string>Дашборд Sroki_svod</string>
+    </property>
+   </widget>
   </widget>
  </widget>
  <resources/>

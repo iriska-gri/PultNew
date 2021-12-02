@@ -100,3 +100,7 @@ class Orm():
     def loadSlovar(self, tablename, rowsname, arr1):
         sql = f'''INSERT INTO {tablename} ({rowsname}) SELECT "{arr1}"'''
         return sql
+
+    def proceduri(self, proc):
+        sql = f'''CALL `{proc}`()'''
+        return sql

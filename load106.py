@@ -28,6 +28,7 @@ class load106():
 
     def __init__(self, bd):
         VScomp.__init__(self)
+        
 
         self.orm = Orm(bd)
     

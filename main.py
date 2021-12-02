@@ -7,6 +7,9 @@ from pathlib import Path
 from OKVEDmanual import OKVEDmanual
 from load106 import load106
 from VScomp import VScomp
+from settings.conn import Orm
+import time
+import subprocess
 
 vs = VScomp()
 
@@ -15,13 +18,17 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
         super(ExampleApp, self).__init__(**kwargs)
         VScomp.__init__(self)
 
-        
+        self.timeall = [0, 0] # Для подсчета затраченнного времени запросов       
         
         self.setupUi(self)  # Это нужно для инициализации нашего дизайна
         self.OKVED.clicked.connect(self.on_radio_button_clicked)
         self.load106.clicked.connect(self.showDialog)
         self.checkManual.toggled.connect(self.on_radio_zagruzka)
         self.chekUpdate.toggled.connect(self.on_radio_Data)
+        self.pushButton_All_bez_back.clicked.connect(self.zapros)
+        self.pushButton_Sroki_svod.clicked.connect(self.zapros)
+        self.pushButton_Daschbord_Sroki_svod.clicked.connect(self.openexel)
+        # getattr(self, x).clicked.connect(lambda:self.openexcel(self.sender().objectName()))
 
 # ------------------------------------------------------------------------------------------------------- ОКВЭД
 
@@ -52,8 +59,25 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
             # self.OKVEDsait()
             print('В работе')
            
+    def openexel(self):
 
-    # def OKVEDsait(self):
+        myfiles = {0 : ('pushButton_Daschbord_Sroki_svod', r'Y:\WorkDocs\Отдел обработки обращений граждан\СООН_СХЕМЫ\Гришина\SROKI_SVOD_STAT.xlsx')}
+
+        track = (r'C:\Windows\Installer\$PatchCache$\Managed\00005109110000000000000000F01FEC\15.0.4569\EXCEL.EXE',
+                r'C:\Program Files\Microsoft Office 15\root\office15\EXCEL.EXE',
+                r'C:\Program Files\Microsoft Office\Office15\EXCEL.EXE')
+
+        for z in range(len(myfiles)):
+            if self.sender().objectName() == myfiles[z][0]:
+                for x in track:
+                    try:
+                        subprocess.Popen([x, myfiles[z][1]])
+                    except:
+                        continue
+        
+    
+    # r''
+        # def OKVEDsait(self):
     #     okvedm = OKVEDmanual()
     #     okvedm.loadSite()
     #     self.on_finished()
@@ -63,6 +87,22 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
         for x in range(len(self.nameDialogs[0])):
             okvedm = OKVEDmanual(self.myBDokved)
             okvedm.loadSite(str(self.nameDialogs[0][x]))
+        self.on_finished()
+
+    def zapros(self):
+        zaprosi = {0 : ('pushButton_All_bez_back', 'z_All_bez_back', self.timeall[0]),
+                   1 : ('pushButton_Sroki_svod', 'z_sroki_svod_106', self.timeall[1])}
+        orm = Orm(self.myBD)
+        startTime = time.time() # время начала замера
+        for x in range(len(zaprosi)):
+            if self.sender().objectName() == zaprosi[x][0]:
+                print("Предыдущее время, затраченное на исполнение запроса = {}".format(zaprosi[x][2]))
+                orm.commit(orm.proceduri(zaprosi[x][1]))
+                endTime = time.time() #время конца замера
+                totalTime = endTime - startTime #вычисляем затраченное время
+                time_format = time.strftime("%H:%M:%S", time.gmtime(totalTime))
+                self.timeall[x] = time_format
+        print("Время, затраченное на выполнение запроса = ", time_format)
         self.on_finished()
         
     
