@@ -28,8 +28,6 @@ class Orm():
         VScomp.__init__(self)
 
         self.mySession = self.session(bdSession)
-        # self.sessionSroki = self.session(self.myBD)
-        # self.sessionOKVED = self.session(self.myBDokved)
 
     def session(self, bd):
         connection = self.connect(*self.set_connect, bd)

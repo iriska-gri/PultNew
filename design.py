@@ -79,6 +79,9 @@ class Ui_MainWindow(object):
         self.pushButton_Daschbord_Sroki_svod.setGeometry(QtCore.QRect(270, 100, 141, 31))
         self.pushButton_Daschbord_Sroki_svod.setStyleSheet("background-color: rgb(85, 170, 127)")
         self.pushButton_Daschbord_Sroki_svod.setObjectName("pushButton_Daschbord_Sroki_svod")
+        self.OKVED_2 = QtWidgets.QPushButton(self.centralwidget)
+        self.OKVED_2.setGeometry(QtCore.QRect(510, 240, 75, 51))
+        self.OKVED_2.setObjectName("OKVED_2")
         MainWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(MainWindow)
@@ -95,3 +98,4 @@ class Ui_MainWindow(object):
         self.pushButton_All_bez_back.setText(_translate("MainWindow", "All_bez_back"))
         self.pushButton_Sroki_svod.setText(_translate("MainWindow", "Sroki_svod"))
         self.pushButton_Daschbord_Sroki_svod.setText(_translate("MainWindow", "Дашборд Sroki_svod"))
+        self.OKVED_2.setText(_translate("MainWindow", "OKVED_sait"))

@@ -5,6 +5,7 @@ import design  # Это наш конвертированный файл диз�
 from completed import Ui_finished as finished
 from pathlib import Path
 from OKVEDmanual import OKVEDmanual
+from OKVEDsait import OKVEDload
 from load106 import load106
 from VScomp import VScomp
 from settings.conn import Orm
@@ -28,6 +29,7 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
         self.pushButton_All_bez_back.clicked.connect(self.zapros)
         self.pushButton_Sroki_svod.clicked.connect(self.zapros)
         self.pushButton_Daschbord_Sroki_svod.clicked.connect(self.openexel)
+        self.OKVED_2.clicked.connect(self.OKVEDsaiti)
         # getattr(self, x).clicked.connect(lambda:self.openexcel(self.sender().objectName()))
 
 # ------------------------------------------------------------------------------------------------------- ОКВЭД
@@ -77,9 +79,9 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
         
     
     # r''
-        # def OKVEDsait(self):
-    #     okvedm = OKVEDmanual()
-    #     okvedm.loadSite()
+    def OKVEDsaiti(self):
+        okvedm = OKVEDload()
+        okvedm.loadInSite() 
     #     self.on_finished()
 
     def OKVEDhand(self): # Событие загрузки файлов ОКВЭД с автоматическим вводом строк

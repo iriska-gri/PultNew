@@ -248,6 +248,19 @@
      <string>Дашборд Sroki_svod</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="OKVED_2">
+    <property name="geometry">
+     <rect>
+      <x>510</x>
+      <y>240</y>
+      <width>75</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>OKVED_sait</string>
+    </property>
+   </widget>
   </widget>
  </widget>
  <resources/>

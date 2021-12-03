@@ -20,14 +20,14 @@ vs = VScomp()
 
 class OKVEDload():
 
-    def __init__(self, bd):
+    def __init__(self):
         VScomp.__init__(self)
 
-        self.orm = Orm(bd)
+        self.orm = Orm(self.myBDokved)
 
     def inTime(self):
         
-        ddate = date.today() - pd.to_timedelta('365 day')
+        ddate = date.today() - pd.to_timedelta('30 day')
 
         dfmindata = self.orm.commit(self.orm.SelectWhere('min(datelikedale)', self.tablemsp, 'datelikedale', '>', ddate))
      
@@ -56,33 +56,31 @@ class OKVEDload():
 
 # # -- --------------------------------------------------------------------------------------------------- Скачивание файла с сайта с декодированием
     def loadInSite(self):
-        now = datetime.datetime.now()
-        a = str(now)
-        b = a.split(' ')[1]
+        result_date_convert ='2021-02-01'
+        # now = datetime.datetime.now()
+        # a = str(now)
+        # b = a.split(' ')[1]
  
-        if self.inTime() == []: # Если все даты в базе
-            print('Все даты в базе')
-        else:
-            # for i in self.inTime():
-            #     self.itogdate = i
-                # print(self.itogdate)
-            try:
-                url='https://www.duitang.com/napi/blog/list/by_search/?kw=%E6%A0%A1%E8%8A%B1&start=0&limit=1000'
-
-                page=requests.get(url)
-                # f = requests.get('http://cluster-analysis.nalog.ru/webproxy/api/OkvedReport/new/okved/download/base64?dateTime=2021-02-01T11:23:00.008Z&apikey=d808c003f1d69c5fa97713b2a5e1b591')
-                # encoded = json.loads(f.text)
-                # data = base64.b64decode(encoded['content'])
-                # self.toread = BytesIO()
-                # self.toread.write(data)  # pass your 'decrypted' string as the argument here
-                # self.toread.seek(0)  # reset the pointer
-                # timer_work = time.monotonic()
-                # # # -------------------------------------------------------------------------------------- Проверка на 0 значения
-                # stolb = pd.read_excel(self.toread, sheet_name='Выручка', usecols = 'A')
-                # print(stolb)
-            except Exception:
-                print("провал загрузки {}".format('f'))
-                # continue
+        # if self.inTime() == []: # Если все даты в базе
+        #     print('Все даты в базе')
+        # else:
+        #     # for i in self.inTime():
+        #     #     self.itogdate = i
+        #         # print(self.itogdate)
+        try:
+            f = requests.get('https://cluster-analysis.nalog.ru/webproxy/api/OkvedReport/new/okved/download/base64?dateTime=' + result_date_convert + str(int(random.random()*1000)) + 'Z&apikey=d808c003f1d69c5fa97713b2a5e1b591')
+            encoded = json.loads(f.text)
+            data = base64.b64decode(encoded['content'])
+            toread = BytesIO()
+            toread.write(data)  # pass your 'decrypted' string as the argument here
+            toread.seek(0)  # reset the pointer
+            timer_work = time.monotonic()
+            # # # -------------------------------------------------------------------------------------- Проверка на 0 значения
+            # stolb = pd.read_excel(self.toread, sheet_name='Выручка', usecols = 'A')
+            # print(stolb)
+        except Exception:
+            print("провал загрузки {}".format('f'))
+            # continue
                 # f = requests.get('https://ya.ru/')
                 # try:
                 # f = requests.get('https://cluster-analysis.nalog.ru/webproxy/api/'+key+'?dateTime=' + result_date_convert + str(int(random.random()*1000)) + 'Z&apikey=d808c003f1d69c5fa97713b2a5e1b591')
@@ -133,5 +131,5 @@ class OKVEDload():
         print("Загрузка прошла успешно: таблица: {} дата: {}".format(inTable, self.itogdate))
         
 
-# if __name__ == '__main__':
-#     OKVEDload().loadInSite() 
+if __name__ == '__main__':
+    OKVEDload().loadInSite() 

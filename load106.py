@@ -28,7 +28,7 @@ class load106():
 
     def __init__(self, bd):
         VScomp.__init__(self)
-        
+
 
         self.orm = Orm(bd)
     
@@ -52,6 +52,9 @@ class load106():
         except Exception:
             print('Возвращаем cp1251')
             return 'cp1251'
+
+    # def namerows(self):
+
 
     def opencsv(self, names):
         name = names
